@@ -9,7 +9,34 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+vec3 HSVtoRGB(float h, float s, float v)
+{
+    float c = v * s;
+    float x = c * (1.0 - abs(mod(h / 60.0, 2.0) - 1.0));
+    float m = v - c;
+
+    vec3 rgb = vec3(0.0);
+
+    if (h >= 0.0 && h < 60.0) {
+        rgb = vec3(c, x, 0.0);
+    } else if (h >= 60.0 && h < 120.0) {
+        rgb = vec3(x, c, 0.0);
+    } else if (h >= 120.0 && h < 180.0) {
+        rgb = vec3(0.0, c, x);
+    } else if (h >= 180.0 && h < 240.0) {
+        rgb = vec3(0.0, x, c);
+    } else if (h >= 240.0 && h < 300.0) {
+        rgb = vec3(x, 0.0, c);
+    } else if (h >= 300.0 && h < 360.0) {
+        rgb = vec3(c, 0.0, x);
+    }
+
+    return rgb + vec3(m);
+}
+
 void main() {
-    fragColor = inColor;
+    //fragColor =vec4( HSVtoRGB((1-inColor.x)*260,1,inColor.x),inColor.x);
+    fragColor =inColor;
     gl_Position = projection * view * model * vec4(inPosition, 1.0);
+    gl_PointSize =clamp( 10/gl_Position.z,5,10);
 }
