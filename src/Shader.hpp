@@ -64,6 +64,11 @@ public:
         glDeleteShader(fragmentShader);
     }
 
+    ~Shader()
+    {
+        glDeleteProgram(programID);
+    }
+
     // シェーダープログラムの使用
     void Use() const { glUseProgram(programID); }
 

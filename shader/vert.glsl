@@ -2,12 +2,14 @@
 
 layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec4 inColor;
+layout (location = 2) in uint groupe;
 
 out vec4 fragColor;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec2 alphaRange;
 
 vec3 HSVtoRGB(float h, float s, float v)
 {
@@ -35,8 +37,16 @@ vec3 HSVtoRGB(float h, float s, float v)
 }
 
 void main() {
-    //fragColor =vec4( HSVtoRGB((1-inColor.x)*260,1,inColor.x),inColor.x);
-    fragColor =inColor;
+    fragColor =vec4( HSVtoRGB((1-inColor.x)*260,1,1),inColor.x);
+    
+    // アルファ範囲チェック
+    //fragColor = inColor;
+    if (inColor.a < alphaRange.x || inColor.a > alphaRange.y) 
+         gl_ClipDistance[0] = -1.0; // クリップ
+    else
+        gl_ClipDistance[0] = 1.0;
+
+
     gl_Position = projection * view * model * vec4(inPosition, 1.0);
-    gl_PointSize =clamp( 10/gl_Position.z,5,10);
+    gl_PointSize = clamp(10.0 / gl_Position.z, 1.0, 30.0);
 }

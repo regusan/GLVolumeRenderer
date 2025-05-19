@@ -25,7 +25,7 @@ PointCloud::~PointCloud()
     glDeleteBuffers(1, &vbo);
 }
 
-std::vector<Vertex> PointCloud::VolumeToVertices(const std::vector<std::vector<std::vector<char>>> &data)
+std::vector<Vertex> PointCloud::VolumeToVertices(const Volume::VolumeData &data)
 {
     std::vector<Vertex> vertices;
     int N = data.size();
@@ -37,13 +37,16 @@ std::vector<Vertex> PointCloud::VolumeToVertices(const std::vector<std::vector<s
         {
             for (int k = 0; k < N; ++k)
             {
-                if (data[i][j][k] != 0)
+                auto cell = &data[i][j][k];
+                if (data[i][j][k].intencity != 0)
                 {
                     float x = (i + 0.5f) * scale - 0.5f;
                     float y = (j + 0.5f) * scale - 0.5f;
                     float z = (k + 0.5f) * scale - 0.5f;
-                    float colorValue = static_cast<float>(data[i][j][k]) / 255.0f;
-                    vertices.push_back({glm::vec3(x, y, z), glm::vec4(colorValue, colorValue, colorValue, colorValue)});
+                    float colorValue = static_cast<float>(cell->intencity) / 255.0f;
+                    vertices.push_back((Vertex){glm::vec3(x, y, z),
+                                                glm::vec4(colorValue, colorValue, colorValue, colorValue),
+                                                cell->id});
                 }
             }
         }
@@ -68,6 +71,10 @@ void PointCloud::UploadBuffer()
     // 頂点カラーの設定
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, color)));
     glEnableVertexAttribArray(1);
+
+    // 頂点グループの設定
+    glVertexAttribPointer(2, 1, GL_BYTE, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, groupe)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }

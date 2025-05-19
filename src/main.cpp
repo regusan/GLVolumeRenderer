@@ -53,6 +53,7 @@ int main()
 
     // シェーダー読み込み
     Shader shader("shader/vert.glsl", "shader/frag.glsl");
+    // Shader shader("shader/id-viewer-vert.glsl", "shader/frag.glsl");
     shader.Use();
 
     // シェーダーハンドル
@@ -62,10 +63,13 @@ int main()
     GLuint alphaRangeLocation = glGetUniformLocation(shader.GetProgramID(), "alphaRange");
 
     // string volumeFilepath = "NonShareVolume/256_256_256B.dat";
-    //   string volumeFilepath = "NonShareVolume/256_256_256E.dat";
-    //     string volumeFilepath = "NonShareVolume/256_256_256K.dat";
-    string volumeFilepath = "NonShareVolume/512_512_512M.dat";
-    //     string volumeFilepath = "NonShareVolume/512_512_512W.dat";
+    //    string volumeFilepath = "NonShareVolume/256_256_256E.dat";
+    //      string volumeFilepath = "NonShareVolume/256_256_256K.dat";
+    // string volumeFilepath = "NonShareVolume/256_256_256S.dat";
+    // string volumeFilepath = "NonShareVolume/512_512_512M.dat";
+    // string volumeFilepath = "NonShareVolume/512_512_512W.dat";
+    string volumeFilepath = "NonShareVolume/512_512_512C.dat";
+
     //  string volumeFilepath = "volume/shape1.dat";
     //    string volumeFilepath = "volume/shape2.dat";
 
@@ -79,6 +83,7 @@ int main()
 
     auto volume = Volume(volumeFile);
     auto pointCloud = PointCloud(volume);
+    cout << volume << endl;
 
     float gameTime = 0;
     float deltaSecond = 1.0f / 60.0f;
@@ -95,6 +100,8 @@ int main()
 
     FrameBuffer finalBuffer(100, 100);
     imguiManager.Initialize(window.GetGLFWwindow(), finalBuffer);
+
+    cout << "Start Main loop" << endl;
     // フレームループ
     while (!glfwWindowShouldClose(window.GetGLFWwindow()))
     {

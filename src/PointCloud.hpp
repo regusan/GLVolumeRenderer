@@ -5,13 +5,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <vector>
-
-class Volume;
+#include "Volume.hpp"
 
 struct Vertex
 {
     glm::vec3 position;
     glm::vec4 color;
+    glm::uint8_t groupe;
 };
 
 // 点群クラス
@@ -37,5 +37,5 @@ public:
         glBindVertexArray(0);
     }
 
-    static std::vector<Vertex> VolumeToVertices(const std::vector<std::vector<std::vector<char>>> &data);
+    static std::vector<Vertex> VolumeToVertices(const Volume::VolumeData &data);
 };

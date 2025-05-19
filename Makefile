@@ -1,7 +1,7 @@
 TARGET_DIR = bin
 OBJ_DIR = obj
 CXX = g++
-CXXFLAGS = -O3 -std=c++17 -Wall -Wextra -MMD -MP -fopenmp
+CXXFLAGS = -O0 -g -std=c++17 -Wall -Wextra -MMD -MP -fopenmp
 SRC_DIR = src
 LDFLAGS := -lglfw -lGL -lGLEW
 
