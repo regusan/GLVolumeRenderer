@@ -13,6 +13,7 @@
 #include "Shader.hpp"
 #include "Window.hpp"
 #include "ImGuiManager.hpp"
+#include "FrameBuffer.hpp"
 
 using namespace std;
 
@@ -34,7 +35,6 @@ int main()
     window.Initialize();
 
     CustomImGuiManager imguiManager;
-    imguiManager.Initialize(window.GetGLFWwindow());
 
     // 深度は無効化
     glDisable(GL_DEPTH_TEST);
@@ -62,12 +62,12 @@ int main()
     GLuint alphaRangeLocation = glGetUniformLocation(shader.GetProgramID(), "alphaRange");
 
     // string volumeFilepath = "NonShareVolume/256_256_256B.dat";
-    //  string volumeFilepath = "NonShareVolume/256_256_256E.dat";
-    //    string volumeFilepath = "NonShareVolume/256_256_256K.dat";
-    //    string volumeFilepath = "NonShareVolume/512_512_512M.dat";
-    //    string volumeFilepath = "NonShareVolume/512_512_512W.dat";
-    string volumeFilepath = "volume/shape1.dat";
-    //   string volumeFilepath = "volume/shape2.dat";
+    //   string volumeFilepath = "NonShareVolume/256_256_256E.dat";
+    //     string volumeFilepath = "NonShareVolume/256_256_256K.dat";
+    string volumeFilepath = "NonShareVolume/512_512_512M.dat";
+    //     string volumeFilepath = "NonShareVolume/512_512_512W.dat";
+    //  string volumeFilepath = "volume/shape1.dat";
+    //    string volumeFilepath = "volume/shape2.dat";
 
     std::ifstream volumeFile(volumeFilepath, std::ios::binary);
     if (!volumeFile.is_open())
@@ -93,6 +93,8 @@ int main()
         model = glm::scale(model, glm::vec3(scale));
     }
 
+    FrameBuffer finalBuffer(100, 100);
+    imguiManager.Initialize(window.GetGLFWwindow(), finalBuffer);
     // フレームループ
     while (!glfwWindowShouldClose(window.GetGLFWwindow()))
     {
@@ -101,21 +103,22 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // 行列設定
-
         glm::mat4 view = glm::lookAt(glm::vec3(0, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
         int width, height;
         glfwGetWindowSize(window.GetGLFWwindow(), &width, &height);
         glm::mat4 projection = glm::perspective(glm::radians<float>(80),
-                                                static_cast<float>(width) / static_cast<float>(height),
+                                                static_cast<float>(imguiManager.GetMainWindowSize().x) / static_cast<float>(imguiManager.GetMainWindowSize().y),
                                                 imguiManager.nearClip, imguiManager.farClip);
 
+        finalBuffer.bind();
         glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, &model[0][0]);
         glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(projectionMatrixID, 1, GL_FALSE, &projection[0][0]);
         glUniform2f(alphaRangeLocation, imguiManager.alphaMin, imguiManager.alphaMax);
 
-        // 点群描画
+        finalBuffer.Clear();
         pointCloud.Draw();
+        finalBuffer.unbind();
 
         {
             // ImGuiフレームの開始

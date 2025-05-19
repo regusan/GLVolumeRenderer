@@ -8,18 +8,24 @@
 #include <ostream>
 #include <fstream>
 #include <functional>
+#include "FrameBuffer.hpp"
 
 class ImGuiManager
 {
+protected:
+    FrameBuffer frameBuffer;
+    ImVec2 mainWindowSize = {640, 320};
+
 public:
     ImGuiManager();
     ~ImGuiManager();
 
-    virtual void Initialize(GLFWwindow *window);
+    virtual void Initialize(GLFWwindow *window, FrameBuffer &frameBuffer);
     virtual void BeginFrame();
     virtual void EndFrame();
     virtual void RenderUI() = 0;
     void RenderDockSpace(); // ドッキングスペース描画
+    ImVec2 GetMainWindowSize() const { return mainWindowSize; };
 };
 
 class CustomImGuiManager : public ImGuiManager

@@ -9,8 +9,9 @@ ImGuiManager::~ImGuiManager()
     ImGui::DestroyContext();
 }
 
-void ImGuiManager::Initialize(GLFWwindow *window)
+void ImGuiManager::Initialize(GLFWwindow *window, FrameBuffer &frameBuffer)
 {
+    this->frameBuffer = frameBuffer;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -67,8 +68,27 @@ void CustomImGuiManager::RenderUI()
 
     // OpenGL描画用のウィンドウ
     ImGui::Begin("OpenGL Render");
-    ImVec2 size = ImGui::GetContentRegionAvail();
+    this->mainWindowSize = ImGui::GetContentRegionAvail();
     ImVec2 pos = ImGui::GetCursorScreenPos();
+
+    // we access the ImGui window size
+
+    // we rescale the framebuffer to the actual window size here and reset the glViewport
+    this->frameBuffer.rescale(this->mainWindowSize.x, this->mainWindowSize.y);
+    glViewport(0, 0, this->mainWindowSize.x, this->mainWindowSize.y);
+
+    // we get the screen position of the window
+    // ImVec2 pos = ImGui::GetCursorScreenPos();
+
+    // and here we can add our created texture as image to ImGui
+    // unfortunately we need to use the cast to void* or I didn't find another way tbh
+    ImGui::GetWindowDrawList()->AddImage(
+        this->frameBuffer.getTextureID(),
+        ImVec2(pos.x, pos.y),
+        ImVec2(pos.x + this->mainWindowSize.x, pos.y + this->mainWindowSize.y),
+        ImVec2(0, 1),
+        ImVec2(1, 0));
+
     ImGui::End();
 }
 
