@@ -1,4 +1,4 @@
-volume/*
+NonShareVolume/*
 bin/*
 
 # Prerequisites
