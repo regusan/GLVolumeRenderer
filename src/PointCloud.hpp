@@ -10,8 +10,8 @@
 struct Vertex
 {
     glm::vec3 position;
-    glm::vec4 color;
-    glm::uint8_t groupe;
+    glm::float32 alpha;
+    // glm::uint8_t groupe;
 };
 
 // 点群クラス

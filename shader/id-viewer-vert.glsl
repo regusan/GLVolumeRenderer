@@ -1,8 +1,9 @@
 #version 330 core
 
 layout (location = 0) in vec3 inPosition;
-layout (location = 1) in vec4 inColor;
-layout (location = 2) in uint  groupe;
+//layout (location = 1) in vec4 inColor;
+layout (location = 1) in float alpha;
+//layout (location = 2) in uint  groupe;
 
 out vec4 fragColor;
 
@@ -10,6 +11,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec2 alphaRange;
+uniform float pointSize;
 
 // HSV to RGB conversion
 vec3 HSVtoRGB(float h, float s, float v)
@@ -35,19 +37,21 @@ float random(float x)
 void main()
 {
     // グループIDに応じた色相計算 (360度の範囲をグループごとに分割)
-    float hue = mod(random(groupe)*360.0, 360.0); // 黄金角度で色分散
-    vec3 groupColor = HSVtoRGB(hue, 0.8, 0.9);
+    //float hue = mod(random(groupe)*360.0, 360.0); // 黄金角度で色分散
+    //vec3 groupColor = HSVtoRGB(1, 0.8, 0.9);
     
     // グループカラーとアルファ設定
-    fragColor = vec4(groupColor, 1.0);
-
+    //fragColor = vec4(groupColor, 1.0);
+    //fragColor =vec4( HSVtoRGB((1-alpha)*260,1,1),alpha);
+    //fragColor =vec4( alpha,alpha,alpha,alpha);
     // アルファ範囲チェック
-    if (inColor.a < alphaRange.x || inColor.a > alphaRange.y)
+    if (alpha < alphaRange.x || alpha > alphaRange.y)
         gl_ClipDistance[0] = -1.0; // クリップ
     else
         gl_ClipDistance[0] = 1.0;
 
     // 位置設定
     gl_Position = projection * view * model * vec4(inPosition, 1.0);
-    gl_PointSize = clamp(10.0 / gl_Position.z, 1.0, 30.0);
+    gl_PointSize = clamp(3.0 / gl_Position.z, 1.0, 100.0)*pointSize;
+    fragColor =vec4(HSVtoRGB(mod(inPosition.y*3000,260),1,alpha),alpha);
 }

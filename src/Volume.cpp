@@ -1,29 +1,31 @@
 #include "Volume.hpp"
 #include <queue>
 
-Volume::Volume(std::ifstream &file)
+using namespace std;
+
+Volume::Volume(ifstream &file)
 {
-    file.seekg(0, std::ios::end);            // 末尾まで移動
-    std::streamsize fileSize = file.tellg(); // ファイルサイズ取得
-    file.seekg(0, std::ios::beg);            // 先頭まで戻す
+    file.seekg(0, ios::end);            // 末尾まで移動
+    streamsize fileSize = file.tellg(); // ファイルサイズ取得
+    file.seekg(0, ios::beg);            // 先頭まで戻す
 
     size_t totalElements = static_cast<int>(fileSize);
-    this->size = std::cbrt(totalElements); // Nを推測
+    this->size = cbrt(totalElements); // Nを推測
 
     if (this->size * this->size * this->size != totalElements)
     {
-        std::cerr << "[ERROR] File size is not a perfect cube." << std::endl;
+        cerr << "[ERROR] File size is not a perfect cube." << endl;
     }
 
     // データ読み込み
-    std::vector<char> data(totalElements);
+    vector<char> data(totalElements);
     if (!file.read(data.data(), fileSize))
     {
-        std::cerr << "[ERROR] Failed to read file data." << std::endl;
+        cerr << "[ERROR] Failed to read file data." << endl;
     }
 
     // 3次元ベクトルに変換
-    this->data = VolumeData(this->size, std::vector<std::vector<Cell>>(this->size, std::vector<Cell>(this->size)));
+    this->data = VolumeData(this->size, vector<vector<Cell>>(this->size, vector<Cell>(this->size)));
     for (size_t i = 0; i < this->size; ++i)
     {
         for (size_t j = 0; j < this->size; ++j)
@@ -42,7 +44,7 @@ Volume::Volume(std::ifstream &file)
 void Search(Volume::VolumeData &v, size_t x, size_t y, size_t z, unsigned int id)
 {
     const size_t size = v.size();
-    std::queue<std::tuple<size_t, size_t, size_t>> queue;
+    queue<tuple<size_t, size_t, size_t>> queue;
     queue.emplace(x, y, z);
 
     while (!queue.empty())
@@ -101,22 +103,27 @@ void Volume::Clustering(VolumeData &v)
         }
     }
 }
-std::ostream &operator<<(std::ostream &os, Volume &v)
+ostream &operator<<(ostream &os, Volume &v)
 {
     size_t size = v.size;
     size_t step = size / 15;
-    os << size << "x" << size << "x" << size << std::endl;
-    for (int i = 0; i < size; i += step)
+    os << v.Sammary() << endl;
+    for (size_t i = 0; i < size; i += step)
     {
-        for (int j = 0; j < size; j += step)
+        for (size_t j = 0; j < size; j += step)
         {
-            for (int k = 0; k < size; k += step)
+            for (size_t k = 0; k < size; k += step)
             {
                 os << "(" << static_cast<int>(v.data[i][j][k].intencity) << "," << v.data[i][j][k].id << ") ";
             }
-            os << std::endl;
+            os << endl;
         }
-        os << std::endl;
+        os << endl;
     }
     return os;
+}
+
+string Volume::Sammary()
+{
+    return to_string(size) + "x" + to_string(size) + "x" + to_string(size) + "=" + to_string(size * size * size);
 }

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include <cmath>
+#include <string>
 
 /// @brief 3Dボリュームクラス
 class Volume
@@ -20,6 +21,7 @@ public:
     size_t size;
     VolumeData data;
     Volume(std::ifstream &file);
+    std::string Sammary();
     static void Clustering(VolumeData &v);
 };
 
