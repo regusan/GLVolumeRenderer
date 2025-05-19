@@ -35,13 +35,14 @@ sudo apt-get install libglew-dev libglfw3-dev libglm-dev
 
 ### 3. Build
 ```bash
-make
+cmake -S . -B build
+cmake --build build -j
 ```
 ### 4. Run
 
 
 ```bash
-./volumen
+./build/volumen
 ```
 ## Usage
 * Right-click drag: Rotate view
