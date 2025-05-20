@@ -10,14 +10,7 @@ GLVolumeRenderer is a rendering tool for visualizing NxNxN 3D binary volume data
 ![Demo1](/Document/Demo-1.gif)
 ![Demo2](/Document/Demo-2.png)
 
-
-## Dependencies
-* **OpenGL**
-* **GLEW (OpenGL Extension Wrangler Library)** - MIT License  
-* **GLFW (Graphics Library Framework)** - zlib/libpng License  
-* **GLM (OpenGL Mathematics)** - MIT License  
-* **IMGUI (Included)** - MIT License  
-
+The void cube volume data was created using [SDF2Volume](https://github.com/regusan/SDF2Volume).
 
 ## Installation and Execution Example
 
@@ -69,3 +62,6 @@ This project uses the following third-party libraries. Their licenses are as fol
 - **IMGUI (Dear ImGui)**  
   Licensed under the MIT License.  
   [Dear ImGui GitHub Repository](https://github.com/ocornut/imgui)  
+
+
+[self link](https://github.com/regusan/GLVolumeRenderer)
