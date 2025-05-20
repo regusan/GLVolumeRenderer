@@ -14,7 +14,27 @@
 #include "Window.hpp"
 #include "ImGuiManager.hpp"
 #include "FrameBuffer.hpp"
+#include "Camera.hpp"
+// vec2
+inline std::ostream &operator<<(std::ostream &os, const glm::vec2 &v)
+{
+    os << "(" << v.x << ", " << v.y << ")";
+    return os;
+}
 
+// vec3
+inline std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
+{
+    os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+    return os;
+}
+
+// vec4
+inline std::ostream &operator<<(std::ostream &os, const glm::vec4 &v)
+{
+    os << "(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")";
+    return os;
+}
 using namespace std;
 
 // スクロール用変数
@@ -22,14 +42,13 @@ GLfloat scale = 1.0f;
 
 // スクロールコールバック
 
-void scroll_callback(GLFWwindow *, double, double yoffset)
+int main(int argc, char const *argv[])
 {
-    scale += yoffset * 0.1;
-    std::cout << "Scale: " << scale << std::endl;
-}
 
-int main()
-{
+    if (argc < 2)
+    {
+    }
+    string volumeFilepath = argv[1];
 
     Window window;
     window.Initialize();
@@ -48,30 +67,20 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-    // スクロールコールバック
-    glfwSetScrollCallback(window.GetGLFWwindow(), scroll_callback);
-
     // シェーダー読み込み
-    Shader shader("shader/vert.glsl", "shader/frag.glsl");
-    // Shader shader("shader/id-viewer-vert.glsl", "shader/frag.glsl");
-    shader.Use();
-
-    // シェーダーハンドル
-    GLuint modelMatrixID = glGetUniformLocation(shader.GetProgramID(), "model");
-    GLuint viewMatrixID = glGetUniformLocation(shader.GetProgramID(), "view");
-    GLuint projectionMatrixID = glGetUniformLocation(shader.GetProgramID(), "projection");
-    GLuint alphaRangeLocation = glGetUniformLocation(shader.GetProgramID(), "alphaRange");
+    Shader pointCLoudShader("shader/vert.glsl", "shader/frag.glsl");
+    Shader raymarchingShader("shader/VolumeMarching-vert.glsl", "shader/VolumeMarching-frag.glsl");
+    Shader &primaryShader = raymarchingShader;
+    primaryShader.Use();
 
     // string volumeFilepath = "NonShareVolume/256_256_256B.dat";
-    //    string volumeFilepath = "NonShareVolume/256_256_256E.dat";
-    //      string volumeFilepath = "NonShareVolume/256_256_256K.dat";
-    // string volumeFilepath = "NonShareVolume/256_256_256S.dat";
-    // string volumeFilepath = "NonShareVolume/512_512_512M.dat";
-    // string volumeFilepath = "NonShareVolume/512_512_512W.dat";
-    string volumeFilepath = "NonShareVolume/512_512_512C.dat";
-
-    //  string volumeFilepath = "volume/shape1.dat";
-    //    string volumeFilepath = "volume/shape2.dat";
+    //  string volumeFilepath = "NonShareVolume/256_256_256E.dat";
+    //        string volumeFilepath = "NonShareVolume/256_256_256K.dat";
+    //    string volumeFilepath = "NonShareVolume/512_512_512M.dat";
+    //   string volumeFilepath = "NonShareVolume/512_512_512W.dat";
+    //   string volumeFilepath = "NonShareVolume/512_512_512W.dat";
+    //    string volumeFilepath = "volume/shape1.dat";
+    //      string volumeFilepath = "volume/shape2.dat";
 
     std::ifstream volumeFile(volumeFilepath, std::ios::binary);
     if (!volumeFile.is_open())
@@ -82,53 +91,76 @@ int main()
     strcpy(imguiManager.fileBuffer, volumeFilepath.c_str());
 
     auto volume = Volume(volumeFile);
-    auto pointCloud = PointCloud(volume);
-    cout << volume << endl;
+    volume.UploadBuffer();
+    PointCloud pointCloud;
 
     float gameTime = 0;
     float deltaSecond = 1.0f / 60.0f;
 
     glm::mat4 model = glm::mat4(1.0f);
-    {
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        // 回転アニメーション
-        model = glm::rotate(model, glm::radians<float>(gameTime * 5), glm::vec3(0.0f, 1.0f, 0.0f));
-        // 拡縮アニメーション
-        // model = glm::scale(model, glm::vec3(fabs(sin(gameTime * 0.1)) + 0.5, fabs(sin(gameTime * 0.1)) + 0.5, 1.0f));
-        model = glm::scale(model, glm::vec3(scale));
-    }
 
-    FrameBuffer finalBuffer(100, 100);
-    imguiManager.Initialize(window.GetGLFWwindow(), finalBuffer);
-
-    cout << "Start Main loop" << endl;
+    FrameBuffer oglBuffer(100, 100);
+    imguiManager.Initialize(window.GetGLFWwindow(), oglBuffer);
+    Camera camera(window.GetGLFWwindow());
     // フレームループ
     while (!glfwWindowShouldClose(window.GetGLFWwindow()))
     {
+
         auto start = std::chrono::high_resolution_clock::now();
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // 行列設定
-        glm::mat4 view = glm::lookAt(glm::vec3(0, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-        int width, height;
-        glfwGetWindowSize(window.GetGLFWwindow(), &width, &height);
+        // IMGUIウィンドウのサイズに合わせてアスペクト比を変化
         glm::mat4 projection = glm::perspective(glm::radians<float>(80),
                                                 static_cast<float>(imguiManager.GetMainWindowSize().x) / static_cast<float>(imguiManager.GetMainWindowSize().y),
                                                 imguiManager.nearClip, imguiManager.farClip);
+        glm::mat4 invView = glm::inverse(camera.view);
+        glm::vec3 cameraPos = -glm::vec3(invView[3]);
+        { // パラメータのGPUへの転送
 
-        finalBuffer.bind();
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, &model[0][0]);
-        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, &view[0][0]);
-        glUniformMatrix4fv(projectionMatrixID, 1, GL_FALSE, &projection[0][0]);
-        glUniform2f(alphaRangeLocation, imguiManager.alphaMin, imguiManager.alphaMax);
+            glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "model"),
+                               1, GL_FALSE, &model[0][0]);
+            glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "view"),
+                               1, GL_FALSE, &camera.view[0][0]);
+            glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "projection"),
+                               1, GL_FALSE, &projection[0][0]);
+            glUniform2f(glGetUniformLocation(primaryShader.GetProgramID(), "alphaRange"),
+                        imguiManager.alphaMinMax[0], imguiManager.alphaMinMax[1]);
+            glUniform1f(glGetUniformLocation(primaryShader.GetProgramID(), "pointSize"),
+                        imguiManager.pointSize);
+            glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "volumeTexture"), 0);
 
-        finalBuffer.Clear();
-        pointCloud.Draw();
-        finalBuffer.unbind();
+            glUniform3fv(glGetUniformLocation(primaryShader.GetProgramID(), "cameraPos"),
+                         1, glm::value_ptr(cameraPos));
+            glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "invViewProj"),
+                               1, GL_FALSE, glm::value_ptr(invView));
+        }
 
-        {
-            // ImGuiフレームの開始
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 全バッファの初期化
+        oglBuffer.bind();
+        oglBuffer.Clear();
+        if (imguiManager.currentShaderIndex == 0)
+        { // レイマーチングで描画
+            primaryShader = raymarchingShader;
+            primaryShader.Use();
+            volume.Draw();
+        }
+        else
+        { // ポイントクラウドで描画
+            static bool bIsPointCloudInitialized = false;
+            if (!bIsPointCloudInitialized)
+            {
+                /// 初めてポイントクラウドになったときのみポイントクラウドへの変換を実行
+                /// XXX:Staticの使用
+                pointCloud = PointCloud(volume);
+                pointCloud.UploadBuffer();
+            }
+            primaryShader = pointCLoudShader;
+            primaryShader.Use();
+            pointCloud.Draw();
+        }
+        oglBuffer.unbind();
+
+        { // ImGuiフレームの開始
+            imguiManager.cameraPos = cameraPos;
             imguiManager.BeginFrame();
             imguiManager.RenderUI();
             imguiManager.EndFrame();
@@ -136,31 +168,15 @@ int main()
 
         // ダブルバッファのスワップ
         glfwSwapBuffers(window.GetGLFWwindow());
-        glfwPollEvents();
 
-        // マウスの左ボタンが押されているか確認
-        if (glfwGetMouseButton(window.GetGLFWwindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-        {
-            std::cout << "Left Mouse Button is pressed." << std::endl;
-            // マウスの位置を取得
-            double xpos, ypos;
-            glfwGetCursorPos(window.GetGLFWwindow(), &xpos, &ypos);
-            std::cout << "Mouse Position: (" << xpos << ", " << ypos << ")" << std::endl;
-            {
-                model = glm::mat4(1);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                // 回転アニメーション
-                model = glm::rotate(model, glm::radians<float>(xpos * 1), glm::vec3(0.0f, 1.0f, 0.0f));
-                model = glm::rotate(model, glm::radians<float>(ypos * 1), glm::vec3(1.0f, 0.0f, 0.0f));
-                // 拡縮アニメーション
-                // model = glm::scale(model, glm::vec3(fabs(sin(gameTime * 0.1)) + 0.5, fabs(sin(gameTime * 0.1)) + 0.5, 1.0f));
-                model = glm::scale(model, glm::vec3(scale));
-            }
+        { // IO系処理
+            glfwPollEvents();
+            camera.Update();
+
+            auto end = std::chrono::high_resolution_clock::now();
+            deltaSecond = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0;
+            gameTime += deltaSecond;
         }
-
-        auto end = std::chrono::high_resolution_clock::now();
-        deltaSecond = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0;
-        gameTime += deltaSecond;
     }
     return 0;
 }

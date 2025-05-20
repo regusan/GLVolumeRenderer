@@ -1,11 +1,12 @@
 #pragma once
+#include <vector>
+#include "Volume.hpp"
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
-#include <vector>
-#include "Volume.hpp"
 
 struct Vertex
 {
@@ -26,16 +27,7 @@ public:
     ~PointCloud();
 
     void UploadBuffer();
-    void Draw()
-    {
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glPointSize(1.0f);
-        glBindVertexArray(vao);
-        glDrawArrays(GL_POINTS, 0, this->vertices.size());
-        glBindVertexArray(0);
-    }
+    void Draw();
 
     static std::vector<Vertex> VolumeToVertices(const Volume::VolumeData &data);
 };

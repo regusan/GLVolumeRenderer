@@ -4,6 +4,12 @@
 #include <chrono>
 #include <iostream>
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+
 #include "PointCloud.hpp"
 #include "Volume.hpp"
 
@@ -12,7 +18,6 @@ using namespace std;
 PointCloud::PointCloud(const Volume &volume)
 {
     this->vertices = PointCloud::VolumeToVertices(volume.data);
-    UploadBuffer();
 }
 
 PointCloud::PointCloud(/* args */)
@@ -82,5 +87,16 @@ void PointCloud::UploadBuffer()
         glVertexAttribPointer(2, 1, GL_BYTE, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, groupe)));
         glEnableVertexAttribArray(2); */
 
+    glBindVertexArray(0);
+}
+
+void PointCloud::Draw()
+{
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glPointSize(1.0f);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_POINTS, 0, this->vertices.size());
     glBindVertexArray(0);
 }

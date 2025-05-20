@@ -4,11 +4,13 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include <glm/glm.hpp>
 #include <iostream>
 #include <ostream>
 #include <fstream>
 #include <functional>
 #include "FrameBuffer.hpp"
+#include <vector>
 
 class ImGuiManager
 {
@@ -34,12 +36,15 @@ class CustomImGuiManager : public ImGuiManager
 
 private:
 public:
-    float nearClip = 0.1f;
+    std::vector<float> fpsHistory = std::vector<float>(100, 0);
+    float nearClip = 0.01f;
     float farClip = 100.0f;
-    float alphaMin = 0.0f;
-    float alphaMax = 1.0f;
+    float alphaMinMax[2] = {0.0f, 1.0f};
+    float pointSize = 1.0f;
     std::string filePath = "";
     char fileBuffer[256];
+    glm::vec3 cameraPos;
     virtual void RenderUI() override;
+    int currentShaderIndex = 0;
     ButtonCallback callback;
 };

@@ -127,3 +127,59 @@ string Volume::Sammary()
 {
     return to_string(size) + "x" + to_string(size) + "x" + to_string(size) + "=" + to_string(size * size * size);
 }
+void Volume::Draw()
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_3D, this->volumeTexture);
+
+    // ユニフォーム設定
+    // glUniform1i(glGetUniformLocation(sliceShaderID, "volumeTex"), 0);
+    // glUniform1f(glGetUniformLocation(sliceShaderID, "sliceZ"), 0.5f); // Z=中央
+
+    // フルスクリーンクワッド描画
+    glBindVertexArray(screenQuadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void Volume::UploadBuffer()
+{
+    std::vector<float> volumeData(size * size * size);
+    for (size_t i = 0; i < size; ++i)
+    {
+        for (size_t j = 0; j < size; ++j)
+        {
+            for (size_t k = 0; k < size; ++k)
+            {
+                volumeData[i * size * size + j * size + k] = static_cast<float>(data[i][j][k].intencity) / 255.0f;
+            }
+        }
+    }
+
+    glGenTextures(1, &volumeTexture);
+    glBindTexture(GL_TEXTURE_3D, volumeTexture);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size, size, size, 0, GL_RED, GL_FLOAT, volumeData.data());
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    float quad[] = {
+        -1, -1, 0, 0,
+        1, -1, 1, 0,
+        1, 1, 1, 1,
+        -1, -1, 0, 0,
+        1, 1, 1, 1,
+        -1, 1, 0, 1};
+    GLuint VBO;
+    glGenVertexArrays(1, &screenQuadVAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(screenQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+}

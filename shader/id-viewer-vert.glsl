@@ -53,5 +53,8 @@ void main()
     // 位置設定
     gl_Position = projection * view * model * vec4(inPosition, 1.0);
     gl_PointSize = clamp(3.0 / gl_Position.z, 1.0, 100.0)*pointSize;
-    fragColor =vec4(HSVtoRGB(mod(inPosition.y*3000,260),1,alpha),alpha);
+    //fragColor =vec4(HSVtoRGB(mod(inPosition.y*3000,260),1,alpha),alpha);
+    fragColor =vec4(vec3(mod(inPosition*1000,1)),alpha);
+    //int a = mod(inPosition.x,2) 
+    //fragColor =vec4(vec3(mod(inPosition*1000,1)),alpha);
 }
