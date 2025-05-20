@@ -15,32 +15,8 @@
 #include "ImGuiManager.hpp"
 #include "FrameBuffer.hpp"
 #include "Camera.hpp"
-// vec2
-inline std::ostream &operator<<(std::ostream &os, const glm::vec2 &v)
-{
-    os << "(" << v.x << ", " << v.y << ")";
-    return os;
-}
 
-// vec3
-inline std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
-{
-    os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
-    return os;
-}
-
-// vec4
-inline std::ostream &operator<<(std::ostream &os, const glm::vec4 &v)
-{
-    os << "(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")";
-    return os;
-}
 using namespace std;
-
-// スクロール用変数
-GLfloat scale = 1.0f;
-
-// スクロールコールバック
 
 int main(int argc, char const *argv[])
 {
@@ -73,15 +49,6 @@ int main(int argc, char const *argv[])
     Shader &primaryShader = raymarchingShader;
     primaryShader.Use();
 
-    // string volumeFilepath = "NonShareVolume/256_256_256B.dat";
-    //  string volumeFilepath = "NonShareVolume/256_256_256E.dat";
-    //        string volumeFilepath = "NonShareVolume/256_256_256K.dat";
-    //    string volumeFilepath = "NonShareVolume/512_512_512M.dat";
-    //   string volumeFilepath = "NonShareVolume/512_512_512W.dat";
-    //   string volumeFilepath = "NonShareVolume/512_512_512W.dat";
-    //    string volumeFilepath = "volume/shape1.dat";
-    //      string volumeFilepath = "volume/shape2.dat";
-
     std::ifstream volumeFile(volumeFilepath, std::ios::binary);
     if (!volumeFile.is_open())
     {
@@ -90,7 +57,8 @@ int main(int argc, char const *argv[])
     }
     strcpy(imguiManager.fileBuffer, volumeFilepath.c_str());
 
-    auto volume = Volume(volumeFile);
+    // ボリュームデータの定義
+    Volume volume = Volume(volumeFile);
     volume.UploadBuffer();
     PointCloud pointCloud;
 
@@ -99,9 +67,13 @@ int main(int argc, char const *argv[])
 
     glm::mat4 model = glm::mat4(1.0f);
 
+    /// OpenGLの描画を行うメインウィンドウのバッファ
     FrameBuffer oglBuffer(100, 100);
     imguiManager.Initialize(window.GetGLFWwindow(), oglBuffer);
+
+    /// カメラインスタンス
     Camera camera(window.GetGLFWwindow());
+
     // フレームループ
     while (!glfwWindowShouldClose(window.GetGLFWwindow()))
     {
@@ -112,8 +84,8 @@ int main(int argc, char const *argv[])
         glm::mat4 projection = glm::perspective(glm::radians<float>(80),
                                                 static_cast<float>(imguiManager.GetMainWindowSize().x) / static_cast<float>(imguiManager.GetMainWindowSize().y),
                                                 imguiManager.nearClip, imguiManager.farClip);
-        glm::mat4 invView = glm::inverse(camera.view);
-        glm::vec3 cameraPos = -glm::vec3(invView[3]);
+        glm::mat4 invViewProj = glm::inverse(projection * camera.view);
+        glm::vec3 cameraPos = glm::vec3(glm::inverse(camera.view)[3]);
         { // パラメータのGPUへの転送
 
             glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "model"),
@@ -124,6 +96,8 @@ int main(int argc, char const *argv[])
                                1, GL_FALSE, &projection[0][0]);
             glUniform2f(glGetUniformLocation(primaryShader.GetProgramID(), "alphaRange"),
                         imguiManager.alphaMinMax[0], imguiManager.alphaMinMax[1]);
+            glUniform2f(glGetUniformLocation(primaryShader.GetProgramID(), "nearFarClip"),
+                        imguiManager.nearClip, imguiManager.farClip);
             glUniform1f(glGetUniformLocation(primaryShader.GetProgramID(), "pointSize"),
                         imguiManager.pointSize);
             glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "volumeTexture"), 0);
@@ -131,7 +105,7 @@ int main(int argc, char const *argv[])
             glUniform3fv(glGetUniformLocation(primaryShader.GetProgramID(), "cameraPos"),
                          1, glm::value_ptr(cameraPos));
             glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "invViewProj"),
-                               1, GL_FALSE, glm::value_ptr(invView));
+                               1, GL_FALSE, glm::value_ptr(invViewProj));
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 全バッファの初期化
@@ -172,7 +146,8 @@ int main(int argc, char const *argv[])
         { // IO系処理
             glfwPollEvents();
             camera.Update();
-
+        }
+        { // 時間系処理
             auto end = std::chrono::high_resolution_clock::now();
             deltaSecond = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0;
             gameTime += deltaSecond;
