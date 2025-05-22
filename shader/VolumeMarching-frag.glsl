@@ -77,8 +77,8 @@ void main()
 
         float intensity = texture(volumeTexture, currentPos).r;//サンプル
         //alphamin~alphamaxの範囲を0~1に正規化して、残留αをかけて、現在のアルファ値とする。
-        //float alpha = smoothstep(alphaRange.x, alphaRange.y, intensity) * (1.0 - alphaAccum);
-        float alpha = clamp(intensity,alphaRange.x, alphaRange.y) * (1.0 - alphaAccum);
+        float alpha = smoothstep(alphaRange.x, alphaRange.y, intensity) * (1.0 - alphaAccum);
+        //float alpha = clamp(intensity,alphaRange.x, alphaRange.y) * (1.0 - alphaAccum);
 
         //HSV変換された色を描画
         colorAccum += HSVtoRGB((1-intensity)*260, 1.0, intensity) * alpha;
