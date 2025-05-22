@@ -132,11 +132,7 @@ void Volume::Draw()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_3D, this->volumeTexture);
 
-    // ユニフォーム設定
-    // glUniform1i(glGetUniformLocation(sliceShaderID, "volumeTex"), 0);
-    // glUniform1f(glGetUniformLocation(sliceShaderID, "sliceZ"), 0.5f); // Z=中央
-
-    // フルスクリーンクワッド描画
+    // フルスクリーンクワッド描画で全ピクセルのピクセルシェーダー起動
     glBindVertexArray(screenQuadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
@@ -165,6 +161,7 @@ void Volume::UploadBuffer()
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // ピクセルシェーダーを起動するためだけに用意された画面全体を覆う板ポリの準備
     float quad[] = {
         -1, -1, 0, 0,
         1, -1, 1, 0,

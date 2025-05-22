@@ -4,7 +4,10 @@ GLVolumeRenderer is a rendering tool for visualizing NxNxN 3D binary volume data
 
 
 ## Features
-*   **3D Volume Rendering**: Displays NxNxN format binary volume data in 3D.
+* Raymarching rendering mode
+* Point cloud rendering mode
+* Cross-section view using Near-Far Clip
+* Filtering by volume density
 
 ## Screenshots
 ![Demo1](/Document/Demo-1.gif)

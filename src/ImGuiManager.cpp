@@ -43,14 +43,6 @@ void CustomImGuiManager::RenderUI()
     RenderDockSpace();
     ImGui::Begin("Control Panel");
 
-    // FPS履歴の更新
-    fpsHistory.push_back(ImGui::GetIO().Framerate);
-    if (fpsHistory.size() > 100)
-        fpsHistory.erase(fpsHistory.begin());
-    float minfps = *min_element(fpsHistory.begin(), fpsHistory.end());
-    float maxfps = *max_element(fpsHistory.begin(), fpsHistory.end());
-    string frameRate = to_string(ImGui::GetIO().Framerate);
-
     if (ImGui::BeginTable("KeyBindingsTable", 2))
     {
         ImGui::TableNextRow();
@@ -80,12 +72,20 @@ void CustomImGuiManager::RenderUI()
         ImGui::EndTable();
     }
 
+    // FPS履歴の更新
+    fpsHistory.push_back(ImGui::GetIO().Framerate);
+    if (fpsHistory.size() > 300)
+        fpsHistory.erase(fpsHistory.begin());
+    float minfps = *min_element(fpsHistory.begin(), fpsHistory.end());
+    float maxfps = *max_element(fpsHistory.begin(), fpsHistory.end());
+    string frameRate = "fps History:\t" + to_string(static_cast<int>(ImGui::GetIO().Framerate)) + "fps";
+
     // FPSグラフの描画
-    ImGui::PlotLines("FPS History", fpsHistory.data(), fpsHistory.size(), 0, frameRate.data(), minfps / 2, maxfps * 2, ImVec2(100, 80));
+    ImGui::PlotLines("", fpsHistory.data(), fpsHistory.size(), 0, frameRate.data(), minfps / 1.5, maxfps * 1.5, ImVec2(-1, 80));
 
     // Near/Far Clip 調整
-    ImGui::SliderFloat("Near Clip", &nearClip, 0.001f, 10.0f);
-    ImGui::SliderFloat("Far Clip", &farClip, 0.01f, 100.0f);
+    ImGui::SliderFloat("Near Clip", &nearClip, 0.001f, 3.0f);
+    ImGui::SliderFloat("Far Clip", &farClip, 0.01f, 3.0f);
 
     ImGui::SliderFloat("Point Size", &pointSize, 0.1f, 2.0f);
 

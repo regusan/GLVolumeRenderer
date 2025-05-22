@@ -10,7 +10,10 @@
 /// XXX:複数のインスタンスが出現すると機能しなくなる！！！シングルトンクラスでサービス化しろ！
 float MOUSE_YOFFSET = 0;
 
+///
 void ScrollCallback(GLFWwindow *, double, double _yoffset) { MOUSE_YOFFSET = _yoffset; }
+
+/// @brief カメラのクラス。実質シングルトン状態
 class Camera
 {
 private:
@@ -83,6 +86,7 @@ public:
         view = glm::translate(view, glm::vec3(currentPosition.x, currentPosition.y, currentPosition.z - armLength));
         view = glm::rotate(view, glm::radians<float>(currentRotation.y * 1), glm::vec3(1.0f, 0.0f, 0.0f));
         view = glm::rotate(view, glm::radians<float>(currentRotation.x * 1), glm::vec3(0.0f, 1.0f, 0.0f));
+        // view = glm::inverse(view);//本来なら逆行列を取るが、中心点周りを周遊するカメラを作りたいため、あえてInvertしない
 
         MOUSE_YOFFSET = 0;
     }
