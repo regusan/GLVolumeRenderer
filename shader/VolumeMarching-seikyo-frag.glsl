@@ -1,3 +1,4 @@
+//固定カメラで正距投影のシェーダー（テスト用)
 #version 330 core
 
 in vec2 texCoord;  // UV座標 (0~1)
@@ -28,7 +29,7 @@ void main()
 
         float alpha = smoothstep(alphaRange.x, alphaRange.y, intensity) * (1.0 - alphaAccum);
 
-        colorAccum += vec3(intensity) * alpha;
+        colorAccum = vec3(intensity) * alpha ;
         alphaAccum += alpha;
 
         if (alphaAccum >= 0.95) break;

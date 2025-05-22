@@ -1,11 +1,12 @@
-#version 330 core
+#version 420 core
 
-layout(location = 0) in vec3 position; // 頂点位置(画面上下左右)
-layout(location = 1) in vec2 inTexCoord; // UV(画面上下左右に0~1)
+//画面全てでピクセルシェーダーを起動することが目的であるため、パラメータ渡し以外何もしない
+
+layout(location = 0) in vec3 position; // 画面上下左右を覆う頂点
+layout(location = 1) in vec2 inTexCoord; // 画面上下左右に0~1をとるUV
 
 out vec2 texCoord;
 
-//画面全てでピクセルシェーダーを起動することが目的であるため、パラメータ渡し以外何もしない
 void main()
 {
     // フラグメントシェーダへ渡す
