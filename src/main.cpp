@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
     // シェーダー読み込み
-    Shader pointCLoudShader("shader/VolumePointCloud-frag.glsl", "shader/VolumePointCloud-vert.glsl");
+    Shader pointCLoudShader("shader/VolumePointCloud-vert.glsl", "shader/VolumePointCloud-frag.glsl");
     Shader raymarchingShader("shader/VolumeMarching-vert.glsl", "shader/VolumeMarching-frag.glsl");
     Shader &primaryShader = raymarchingShader;
     primaryShader.Use();

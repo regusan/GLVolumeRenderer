@@ -1,5 +1,5 @@
 //固定カメラで正距投影のシェーダー（テスト用)
-#version 330 core
+#version 420 core
 
 in vec2 texCoord;  // UV座標 (0~1)
 out vec4 FragColor;
