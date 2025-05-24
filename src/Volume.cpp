@@ -41,6 +41,27 @@ Volume::Volume(ifstream &file)
     // Volume::Clustering(this->data);
 }
 
+glm::vec3 Volume::CalcNormalAtIndex(size_t _x, size_t _y, size_t _z)
+{
+    glm::vec3 grad = {this->data[_x - 1][_y][_z].intencity - this->data[_x][_y][_z].intencity,  // X軸方向の強度
+                      this->data[_x][_y - 1][_z].intencity - this->data[_x][_y][_z].intencity,  // Y軸
+                      this->data[_x][_y][_z - 1].intencity - this->data[_x][_y][_z].intencity}; // Z軸
+    return glm::normalize(grad);
+}
+void Volume::CalcNormal()
+{
+    for (size_t i = 0; i < this->size; ++i)
+    {
+        for (size_t j = 0; j < this->size; ++j)
+        {
+            for (size_t k = 0; k < this->size; ++k)
+            {
+                // this->data[i][j][k].normal = CalcNormalAtIndex(i, j, k);
+            }
+        }
+    }
+}
+
 // BFSによる領域探索（スタックオーバーフロー防止）
 void Search(Volume::VolumeData &v, size_t x, size_t y, size_t z, unsigned int id)
 {
@@ -134,8 +155,8 @@ void Volume::Draw()
     glBindTexture(GL_TEXTURE_3D, this->volumeTexture);
 
     // フルスクリーンクワッド描画で全ピクセルのピクセルシェーダー起動
-    glBindVertexArray(screenQuadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(cubeVAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
 
 void Volume::UploadBuffer()
@@ -162,22 +183,54 @@ void Volume::UploadBuffer()
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // ピクセルシェーダーを起動するためだけに用意された画面全体を覆う板ポリの準備
-    float quad[] = {
-        -1, -1, 0, 0,
-        1, -1, 1, 0,
-        1, 1, 1, 1,
-        -1, -1, 0, 0,
-        1, 1, 1, 1,
-        -1, 1, 0, 1};
-    GLuint VBO;
-    glGenVertexArrays(1, &screenQuadVAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(screenQuadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
+    float cubeVertices[] = {
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+    };
+
+    // インデックスでキューブ6面構成（12三角形）
+    unsigned int cubeIndices[] = {
+        0, 1, 2, 2, 3, 0,
+        1, 5, 6, 6, 2, 1,
+        5, 4, 7, 7, 6, 5,
+        4, 0, 3, 3, 7, 4,
+        3, 2, 6, 6, 7, 3,
+        4, 5, 1, 1, 0, 4};
+    GLuint cubeVBO, cubeEBO;
+    glGenVertexArrays(1, &this->cubeVAO);
+    glGenBuffers(1, &cubeVBO);
+    glGenBuffers(1, &cubeEBO);
+
+    glBindVertexArray(cubeVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
 }

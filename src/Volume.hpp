@@ -15,12 +15,15 @@
 /// @brief 3Dボリュームクラス
 class Volume
 {
+private:
+    glm::vec3 CalcNormalAtIndex(size_t x, size_t y, size_t z);
 
 public:
     struct Cell
     {
         char intencity;
         unsigned char id;
+        // glm::vec3 normal;
     };
 
     using VolumeData = std::vector<std::vector<std::vector<Cell>>>;
@@ -31,8 +34,9 @@ public:
     static void Clustering(VolumeData &v);
     void Draw();
     void UploadBuffer();
+    void CalcNormal();
     GLuint volumeTexture = 0;
-    GLuint screenQuadVAO = 0;
+    GLuint cubeVAO = 0;
 };
 
 std::ostream &operator<<(std::ostream &os, Volume &v);

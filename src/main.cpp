@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <optional>
 #include "Volume.hpp"
 #include "PointCloud.hpp"
 #include "Shader.hpp"
@@ -41,11 +42,11 @@ int main(int argc, char const *argv[])
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 
     // シェーダー読み込み
-    Shader pointCLoudShader("shader/VolumePointCloud-vert.glsl", "shader/VolumePointCloud-frag.glsl");
-    Shader raymarchingShader("shader/VolumeMarching-vert.glsl", "shader/VolumeMarching-frag.glsl");
+    Shader pointCloudShader("shader/VolumePointCloud.vert", "shader/VolumePointCloud.frag");
+    Shader raymarchingShader("shader/VolumeMarching.vert", "shader/VolumeMarching.frag");
     Shader &primaryShader = raymarchingShader;
     primaryShader.Use();
 
@@ -60,7 +61,7 @@ int main(int argc, char const *argv[])
     // ボリュームデータの定義
     Volume volume = Volume(volumeFile);
     volume.UploadBuffer();
-    PointCloud pointCloud;
+    optional<PointCloud> pointCloud;
 
     float gameTime = 0;
     float deltaSecond = 1.0f / 60.0f;
@@ -106,6 +107,7 @@ int main(int argc, char const *argv[])
                          1, glm::value_ptr(cameraPos));
             glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "invViewProj"),
                                1, GL_FALSE, glm::value_ptr(invViewProj));
+            glUniform2f(glGetUniformLocation(primaryShader.GetProgramID(), "screenSize"), imguiManager.GetMainWindowSize().x, imguiManager.GetMainWindowSize().y);
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 全バッファの初期化
@@ -119,17 +121,15 @@ int main(int argc, char const *argv[])
         }
         else
         { // ポイントクラウドで描画
-            static bool bIsPointCloudInitialized = false;
-            if (!bIsPointCloudInitialized)
+            if (pointCloud.has_value() == false)
             {
                 /// 初めてポイントクラウドになったときのみポイントクラウドへの変換を実行
-                /// XXX:Staticの使用
                 pointCloud = PointCloud(volume);
-                pointCloud.UploadBuffer();
+                pointCloud->UploadBuffer();
             }
-            primaryShader = pointCLoudShader;
+            primaryShader = pointCloudShader;
             primaryShader.Use();
-            pointCloud.Draw();
+            pointCloud->Draw();
         }
         oglBuffer.unbind();
 
