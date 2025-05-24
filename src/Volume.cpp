@@ -151,6 +151,10 @@ string Volume::Sammary()
 }
 void Volume::Draw()
 {
+    // 設定
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_3D, this->volumeTexture);
 
@@ -212,12 +216,18 @@ void Volume::UploadBuffer()
 
     // インデックスでキューブ6面構成（12三角形）
     unsigned int cubeIndices[] = {
-        0, 1, 2, 2, 3, 0,
-        1, 5, 6, 6, 2, 1,
-        5, 4, 7, 7, 6, 5,
-        4, 0, 3, 3, 7, 4,
-        3, 2, 6, 6, 7, 3,
-        4, 5, 1, 1, 0, 4};
+        2, 1, 0,
+        0, 3, 2,
+        6, 5, 1,
+        1, 2, 6,
+        7, 4, 5,
+        5, 6, 7,
+        3, 0, 4,
+        4, 7, 3,
+        6, 2, 3,
+        3, 7, 6,
+        1, 5, 4,
+        4, 0, 1};
     GLuint cubeVBO, cubeEBO;
     glGenVertexArrays(1, &this->cubeVAO);
     glGenBuffers(1, &cubeVBO);

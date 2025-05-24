@@ -85,8 +85,6 @@ int main(int argc, char const *argv[])
         glm::mat4 projection = glm::perspective(glm::radians<float>(80),
                                                 static_cast<float>(imguiManager.GetMainWindowSize().x) / static_cast<float>(imguiManager.GetMainWindowSize().y),
                                                 imguiManager.nearClip, imguiManager.farClip);
-        glm::mat4 invViewProj = glm::inverse(projection * camera.view);
-        glm::vec3 cameraPos = glm::vec3(glm::inverse(camera.view)[3]);
         { // パラメータのGPUへの転送
 
             glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "model"),
@@ -102,12 +100,8 @@ int main(int argc, char const *argv[])
             glUniform1f(glGetUniformLocation(primaryShader.GetProgramID(), "pointSize"),
                         imguiManager.pointSize);
             glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "volumeTexture"), 0);
-
-            glUniform3fv(glGetUniformLocation(primaryShader.GetProgramID(), "cameraPos"),
-                         1, glm::value_ptr(cameraPos));
-            glUniformMatrix4fv(glGetUniformLocation(primaryShader.GetProgramID(), "invViewProj"),
-                               1, GL_FALSE, glm::value_ptr(invViewProj));
-            glUniform2f(glGetUniformLocation(primaryShader.GetProgramID(), "screenSize"), imguiManager.GetMainWindowSize().x, imguiManager.GetMainWindowSize().y);
+            glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "volumeResolution"),
+                        volume.size);
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 全バッファの初期化
@@ -134,7 +128,7 @@ int main(int argc, char const *argv[])
         oglBuffer.unbind();
 
         { // ImGuiフレームの開始
-            imguiManager.cameraPos = cameraPos;
+            imguiManager.cameraPos = camera.GetPos();
             imguiManager.BeginFrame();
             imguiManager.RenderUI();
             imguiManager.EndFrame();

@@ -1,20 +1,16 @@
 #version 420 core
 
-in vec2 texCoord;
+in vec4 positionWS;
 out vec4 FragColor;
 
 uniform sampler3D volumeTexture;
 uniform mat4 view;
-uniform mat4 projection;
 uniform vec2 alphaRange;
 uniform vec2 nearFarClip;
-uniform vec3 cameraPos;
-uniform mat4 invViewProj;// (projection * view)^-1
-uniform vec2 screenSize;
+uniform int volumeResolution;
 
 const float SQRT3=sqrt(3);
-const int resolution=800;//ボクセルの解像度
-const int maxSteps=int(sqrt(3.*resolution*resolution));//1ステップで1ボクセル参照するような長さにする(最悪でも)
+int maxSteps=int(sqrt(3.*volumeResolution*volumeResolution));//1ステップで1ボクセル参照するような長さにする(最悪でも)
 const float boxFarestLength=SQRT3;//sqrt(1^2+1^2+1^2)バウンディングボックス内での最長距離
 
 // HSV to RGB conversion
@@ -37,23 +33,21 @@ vec3 HSVtoRGB(float h,float s,float v)
 
 void main()
 {
-    // スクリーン座標(0~1)からクリップ空間(-1~1)に変換
-    vec4 clipPos=vec4(gl_FragCoord.xy/screenSize*2.-1.,0.,1.);
+    vec3 cameraPos=vec3(inverse(view)[3]);
+    vec3 rayDir=normalize(positionWS.xyz-cameraPos);
     
-    // クリップ空間UVをワールド空間へ変換し、各ピクセルごとのワールド空間での視点ベクトルを取得
-    vec4 worldPos=invViewProj*clipPos;
-    worldPos/=worldPos.w;
-    
-    vec3 rayDir=normalize(worldPos.xyz-cameraPos);
-    
-    //レイの開始点をバウンディングボックスへの入射位置と合わせるための計算
-    float distanceToCentor=length(cameraPos-vec3(0));//バウンディングボックス中心までの最短距離
-    float distanceToBox=distanceToCentor-SQRT3;//バウンディングボックスまでの最短距離の最悪距離=バウンディングスフィアとの距離
     //バウンディングボックスに接触するまでの距離か、ニアクリップの距離の大きいほうをレイの開始点オフセットとする
-    float rayStartOffset=max(distanceToBox,nearFarClip.x);
+    float rayStartOffset=nearFarClip.x;
     
-    //レイの始点を計算 = カメラ位置 + バウンディングボックスを中心にずらすvec(0.5) + レイの方向 * レイの始点オフセット
-    vec3 initialPos=cameraPos+vec3(.5)+rayDir*rayStartOffset;
+    //レイの始点を計算
+    vec3 initialPos;
+    if(gl_FrontFacing)//表面が映ってるならその表面内からレイ開始
+    {
+        initialPos=positionWS.xyz+vec3(.5);
+    }
+    else{//背面が映っている＝カメラがボリューム内ならカメラ位置からレイ開始
+        initialPos=cameraPos+vec3(.5)+rayDir*rayStartOffset;
+    }
     
     // レイの最長距離(ボックス内での最長距離)か、ファークリップ距離の短いほう最短距離とする
     float maxRayDistance=min(boxFarestLength+rayStartOffset,nearFarClip.y);
@@ -69,10 +63,10 @@ void main()
     {
         vec3 currentPos=rayDir*stepSize*float(i)+initialPos;
         
-        //ボリューム外なら中断して次のレイを進める
+        //開始は必ずボリューム内なのでボリューム外なら中断。
         if(any(lessThan(currentPos,vec3(0.)))||any(greaterThan(currentPos,vec3(1.))))
         {
-            continue;
+            break;
         }
         
         float intensity=texture(volumeTexture,currentPos).r;//サンプル
