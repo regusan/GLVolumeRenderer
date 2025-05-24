@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
 
     // シェーダー読み込み
     Shader pointCloudShader("shader/VolumePointCloud.vert", "shader/VolumePointCloud.frag");

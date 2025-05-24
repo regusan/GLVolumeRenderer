@@ -9,6 +9,9 @@ uniform vec2 alphaRange;
 uniform vec2 nearFarClip;
 uniform int volumeResolution;
 
+vec3 lightPos=vec3(1,1,1);
+vec3 lightCol=vec3(.9373,.749,0.);
+
 const float SQRT3=sqrt(3);
 int maxSteps=int(sqrt(3.*volumeResolution*volumeResolution));//1ステップで1ボクセル参照するような長さにする(最悪でも)
 const float boxFarestLength=SQRT3;//sqrt(1^2+1^2+1^2)バウンディングボックス内での最長距離
@@ -54,9 +57,8 @@ void main()
     // 1回でレイを進める長さを計算。
     float stepSize=maxRayDistance/float(maxSteps);
     
-    //加算されていく最終的な色と透明度
-    float alphaAccum=0.;
-    vec3 colorAccum=vec3(0.);
+    float remainAlpha=1.;//残留している透明度
+    vec3 colorAccum=vec3(0.);//加算されていく最終的な色
     
     //レイマーチング開始
     for(int i=0;i<maxSteps;i++)
@@ -70,16 +72,15 @@ void main()
         }
         
         float intensity=texture(volumeTexture,currentPos).r;//サンプル
-        //alphamin~alphamaxの範囲を0~1に正規化して、残留αをかけて、現在のアルファ値とする。
-        float alpha=smoothstep(alphaRange.x,alphaRange.y,intensity)*(1.-alphaAccum);
-        //float alpha = clamp(intensity,alphaRange.x, alphaRange.y) * (1.0 - alphaAccum);
+        //alphamin~alphamaxの範囲を0~1に正規化して、現在のアルファ値とする。
+        float alpha=smoothstep(alphaRange.x,alphaRange.y,intensity);
         
         //HSV変換された色を描画
-        colorAccum+=HSVtoRGB((1-intensity)*260,1.,intensity)*alpha;
-        alphaAccum+=alpha;
+        colorAccum+=HSVtoRGB((1-alpha)*260,1.,alpha)*1;
+        remainAlpha*=1-alpha;
         
         // 十分不透明になったら終了
-        if(alphaAccum>=.95)
+        if(remainAlpha<.1)
         {
             break;
         }
@@ -87,5 +88,5 @@ void main()
     }
     
     //色を出力
-    FragColor=vec4(colorAccum,alphaAccum);
+    FragColor=vec4(colorAccum,1-remainAlpha);
 }
