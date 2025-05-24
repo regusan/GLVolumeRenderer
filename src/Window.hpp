@@ -7,9 +7,9 @@
 class Window
 {
 private:
-    GLFWwindow *window;
     int width, height;
     std::string title;
+    GLFWwindow *window;
 
 public:
     Window(int width = 1280, int height = 960, const std::string &title = "OpenGL Volume Renderer");

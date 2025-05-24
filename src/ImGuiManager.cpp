@@ -101,7 +101,7 @@ void CustomImGuiManager::RenderUI()
             std::cerr << "Failed to load file: " << filePath << std::endl;
         callback();
     }
-    const char *shaderNames[] = {"Ray Marching", "Point Cloud"};
+    const char *shaderNames[] = {"Ray Casting", "Ray Casting(Max)", "Point Cloud"};
     if (ImGui::Combo("Select Shader", &currentShaderIndex, shaderNames, IM_ARRAYSIZE(shaderNames)))
     {
     }

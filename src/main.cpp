@@ -46,8 +46,9 @@ int main(int argc, char const *argv[])
 
     // シェーダー読み込み
     Shader pointCloudShader("shader/VolumePointCloud.vert", "shader/VolumePointCloud.frag");
-    Shader raymarchingShader("shader/VolumeMarching.vert", "shader/VolumeMarching.frag");
-    Shader &primaryShader = raymarchingShader;
+    Shader raycastShader("shader/VolumeMarching.vert", "shader/VolumeMarching.frag");
+    Shader raycastMaxShader("shader/VolumeMarching.vert", "shader/VolumeCasting-Max.frag");
+    Shader &primaryShader = raycastShader;
     primaryShader.Use();
 
     std::ifstream volumeFile(volumeFilepath, std::ios::binary);
@@ -107,13 +108,21 @@ int main(int argc, char const *argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 全バッファの初期化
         oglBuffer.bind();
         oglBuffer.Clear();
+
+        // レンダリング方式切り替え
         if (imguiManager.currentShaderIndex == 0)
-        { // レイマーチングで描画
-            primaryShader = raymarchingShader;
+        { // レイキャスティングで描画
+            primaryShader = raycastShader;
             primaryShader.Use();
             volume.Draw();
         }
-        else
+        else if (imguiManager.currentShaderIndex == 1)
+        { // レイキャスティングで描画(Max)
+            primaryShader = raycastMaxShader;
+            primaryShader.Use();
+            volume.Draw();
+        }
+        else if (imguiManager.currentShaderIndex == 2)
         { // ポイントクラウドで描画
             if (pointCloud.has_value() == false)
             {
