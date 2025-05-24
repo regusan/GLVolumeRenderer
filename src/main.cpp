@@ -103,6 +103,9 @@ int main(int argc, char const *argv[])
             glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "volumeTexture"), 0);
             glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "volumeResolution"),
                         volume.size);
+            glUniform3f(glGetUniformLocation(primaryShader.GetProgramID(), "ambientLight"),
+                        imguiManager.ambientLight.x, imguiManager.ambientLight.y, imguiManager.ambientLight.z);
+            imguiManager.light.UploadBuffer(primaryShader.GetProgramID(), "light");
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 全バッファの初期化

@@ -37,105 +37,125 @@ void ImGuiManager::EndFrame()
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
-
 void CustomImGuiManager::RenderUI()
 {
     RenderDockSpace();
-    ImGui::Begin("Control Panel");
 
-    if (ImGui::BeginTable("KeyBindingsTable", 2))
+    if (ImGui::Begin("Control Panel"))
     {
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Action");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::Text("Key");
 
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Move");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::Text("Mouse Middle Btn + Mouse Movement");
+        if (ImGui::BeginTable("KeyBindingsTable", 2))
+        {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Action");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("Key");
 
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Rotate Camera");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::Text("Mouse Right Btn + Mouse Movement");
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Move");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("Mouse Middle Btn + Mouse Movement");
 
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Zoom In/Out");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::Text("Mouse Wheel");
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Rotate Camera");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("Mouse Right Btn + Mouse Movement");
 
-        ImGui::EndTable();
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Zoom In/Out");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("Mouse Wheel");
+
+            ImGui::EndTable();
+        }
+
+        // FPS履歴の更新
+        fpsHistory.push_back(ImGui::GetIO().Framerate);
+        if (fpsHistory.size() > 300)
+            fpsHistory.erase(fpsHistory.begin());
+        float minfps = *min_element(fpsHistory.begin(), fpsHistory.end());
+        float maxfps = *max_element(fpsHistory.begin(), fpsHistory.end());
+        string frameRate = "fps History:\t" + to_string(static_cast<int>(ImGui::GetIO().Framerate)) + "fps";
+
+        // FPSグラフの描画
+        ImGui::PlotLines("", fpsHistory.data(), fpsHistory.size(), 0, frameRate.data(), minfps / 1.5, maxfps * 1.5, ImVec2(-1, 80));
+
+        // Near/Far Clip 調整
+        ImGui::SliderFloat("Near Clip", &nearClip, 0.001f, 3.0f);
+        ImGui::SliderFloat("Far Clip", &farClip, 0.01f, 3.0f);
+
+        ImGui::SliderFloat("Point Size", &pointSize, 0.1f, 2.0f);
+
+        ImGui::InputText("File Path", fileBuffer, 256);
+        // ファイル読み取り
+        if (ImGui::Button("Load Volume"))
+        {
+            filePath = std::string(fileBuffer);
+            std::ifstream file(filePath);
+            if (file.is_open())
+                std::cout << "File loaded: " << filePath << std::endl;
+            else
+                std::cerr << "Failed to load file: " << filePath << std::endl;
+            callback();
+        }
+        const char *shaderNames[] = {"Ray Casting", "Ray Casting(Max)", "Point Cloud"};
+        if (ImGui::Combo("Select Shader", &currentShaderIndex, shaderNames, IM_ARRAYSIZE(shaderNames)))
+        {
+        }
+
+        // アルファ値調整
+        ImGui::SliderFloat2("Alpha Min-Max", alphaMinMax, 0.0f, 1.0f);
+
+        ImGui::DragFloat3("CameraPosition", glm::value_ptr(cameraPos), 0.01f);
     }
+    ImGui::End();
 
-    // FPS履歴の更新
-    fpsHistory.push_back(ImGui::GetIO().Framerate);
-    if (fpsHistory.size() > 300)
-        fpsHistory.erase(fpsHistory.begin());
-    float minfps = *min_element(fpsHistory.begin(), fpsHistory.end());
-    float maxfps = *max_element(fpsHistory.begin(), fpsHistory.end());
-    string frameRate = "fps History:\t" + to_string(static_cast<int>(ImGui::GetIO().Framerate)) + "fps";
-
-    // FPSグラフの描画
-    ImGui::PlotLines("", fpsHistory.data(), fpsHistory.size(), 0, frameRate.data(), minfps / 1.5, maxfps * 1.5, ImVec2(-1, 80));
-
-    // Near/Far Clip 調整
-    ImGui::SliderFloat("Near Clip", &nearClip, 0.001f, 3.0f);
-    ImGui::SliderFloat("Far Clip", &farClip, 0.01f, 3.0f);
-
-    ImGui::SliderFloat("Point Size", &pointSize, 0.1f, 2.0f);
-
-    ImGui::InputText("File Path", fileBuffer, 256);
-    // ファイル読み取り
-    if (ImGui::Button("Load Volume"))
+    if (ImGui::Begin("Light Editor"))
     {
-        filePath = std::string(fileBuffer);
-        std::ifstream file(filePath);
-        if (file.is_open())
-            std::cout << "File loaded: " << filePath << std::endl;
-        else
-            std::cerr << "Failed to load file: " << filePath << std::endl;
-        callback();
+
+        ImGui::ColorEdit3("AmbientLightColor", &ambientLight[0]);
+        ImGui::Text("Position");
+        ImGui::DragFloat3("Position", &light.pos[0], 0.01f);
+
+        ImGui::Text("Color");
+        ImGui::ColorEdit3("Color", &light.col[0]);
+
+        ImGui::Text("Affect Distance");
+        ImGui::DragFloat("Affect Distance", &light.affectDistance, 0.01f, 0.0f, 1.0f);
+
+        ImGui::Text("Intensity");
+        ImGui::DragFloat("Intensity", &light.intensity, 0.1f, 0.0f, 100.0f);
     }
-    const char *shaderNames[] = {"Ray Casting", "Ray Casting(Max)", "Point Cloud"};
-    if (ImGui::Combo("Select Shader", &currentShaderIndex, shaderNames, IM_ARRAYSIZE(shaderNames)))
-    {
-    }
-
-    // アルファ値調整
-    ImGui::SliderFloat2("Alpha Min-Max", alphaMinMax, 0.0f, 1.0f);
-
-    ImGui::DragFloat3("CameraPosition", glm::value_ptr(cameraPos), 0.01f);
-
     ImGui::End();
 
     // OpenGL描画用のウィンドウ
-    ImGui::Begin("OpenGL Render");
-    this->mainWindowSize = ImGui::GetContentRegionAvail();
-    ImVec2 pos = ImGui::GetCursorScreenPos();
+    if (ImGui::Begin("OpenGL Render"))
+    {
+        this->mainWindowSize = ImGui::GetContentRegionAvail();
+        ImVec2 pos = ImGui::GetCursorScreenPos();
 
-    // we access the ImGui window size
+        // we access the ImGui window size
 
-    // we rescale the framebuffer to the actual window size here and reset the glViewport
-    this->frameBuffer.rescale(this->mainWindowSize.x, this->mainWindowSize.y);
-    glViewport(0, 0, this->mainWindowSize.x, this->mainWindowSize.y);
+        // we rescale the framebuffer to the actual window size here and reset the glViewport
+        this->frameBuffer.rescale(this->mainWindowSize.x, this->mainWindowSize.y);
+        glViewport(0, 0, this->mainWindowSize.x, this->mainWindowSize.y);
 
-    // we get the screen position of the window
-    // ImVec2 pos = ImGui::GetCursorScreenPos();
+        // we get the screen position of the window
+        // ImVec2 pos = ImGui::GetCursorScreenPos();
 
-    // and here we can add our created texture as image to ImGui
-    // unfortunately we need to use the cast to void* or I didn't find another way tbh
-    ImGui::GetWindowDrawList()->AddImage(
-        this->frameBuffer.getTextureID(),
-        ImVec2(pos.x, pos.y),
-        ImVec2(pos.x + this->mainWindowSize.x, pos.y + this->mainWindowSize.y),
-        ImVec2(0, 1),
-        ImVec2(1, 0));
-
+        // and here we can add our created texture as image to ImGui
+        // unfortunately we need to use the cast to void* or I didn't find another way tbh
+        ImGui::GetWindowDrawList()->AddImage(
+            this->frameBuffer.getTextureID(),
+            ImVec2(pos.x, pos.y),
+            ImVec2(pos.x + this->mainWindowSize.x, pos.y + this->mainWindowSize.y),
+            ImVec2(0, 1),
+            ImVec2(1, 0));
+    }
     ImGui::End();
 }
 

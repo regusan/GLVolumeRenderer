@@ -11,6 +11,7 @@
 #include <functional>
 #include "FrameBuffer.hpp"
 #include <vector>
+#include "PointLight.hpp"
 
 class ImGuiManager
 {
@@ -44,6 +45,9 @@ public:
     std::string filePath = "";
     char fileBuffer[256];
     glm::vec3 cameraPos;
+    PointLight light;
+    glm::vec3 ambientLight = glm::vec3(0.3);
+
     virtual void RenderUI() override;
     int currentShaderIndex = 0;
     ButtonCallback callback;

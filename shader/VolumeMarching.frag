@@ -3,14 +3,20 @@
 in vec4 positionWS;
 out vec4 FragColor;
 
+struct Light{
+    vec3 pos;
+    vec3 col;
+    float affectDistance;
+    float intensity;
+};
+
 uniform sampler3D volumeTexture;
 uniform mat4 view;
 uniform vec2 alphaRange;
 uniform vec2 nearFarClip;
 uniform int volumeResolution;
-
-vec3 lightPos=vec3(1,1,1);
-vec3 lightCol=vec3(.9373,.749,0.);
+uniform vec3 ambientLight;
+uniform Light light;
 
 const float SQRT3=sqrt(3);
 int maxSteps=int(sqrt(3.*volumeResolution*volumeResolution));//1ステップで1ボクセル参照するような長さにする(最悪でも)
@@ -71,16 +77,38 @@ void main()
             break;
         }
         
+        float lightEnergy=0.;
+        float distanceToLight=distance(currentPos,light.pos);
+        if(distanceToLight<light.affectDistance)
+        {
+            lightEnergy=1.;
+            int lightMaxRayStep=int(distanceToLight/(stepSize));
+            vec3 lightRayDir=normalize(light.pos-currentPos);
+            float unitRayAttenuation=pow(.9,stepSize);
+            for(int j=0;j<lightMaxRayStep;j++)
+            {
+                vec3 lightRayPos=light.pos-lightRayDir*stepSize*float(j);
+                lightEnergy*=1-texture(volumeTexture,currentPos).r;
+                if(lightEnergy<.0001)
+                {
+                    lightEnergy=0;
+                    break;
+                }
+                lightEnergy*=unitRayAttenuation;
+            }
+        }
+        
         float intensity=texture(volumeTexture,currentPos).r;//サンプル
         //alphamin~alphamaxの範囲を0~1に正規化して、現在のアルファ値とする。
         float alpha=smoothstep(alphaRange.x,alphaRange.y,intensity);
         
         //HSV変換された色を描画
-        colorAccum+=HSVtoRGB((1-alpha)*260,1.,alpha)*1;
+        //colorAccum+=HSVtoRGB((1-alpha)*260,1.,alpha)*(light.col*light.intensity*lightEnergy+ambientLight);
+        colorAccum+=vec3(alpha)*(light.col*light.intensity*lightEnergy+ambientLight);
         remainAlpha*=1-alpha;
         
         // 十分不透明になったら終了
-        if(remainAlpha<.1)
+        if(remainAlpha<.0001)
         {
             break;
         }
