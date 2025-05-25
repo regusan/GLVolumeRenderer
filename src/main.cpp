@@ -135,7 +135,7 @@ int main(int argc, char const *argv[])
             }
             primaryShader = pointCloudShader;
             primaryShader.Use();
-            pointCloud->Draw();
+            pointCloud->Draw(camera.view * model);
         }
         oglBuffer.unbind();
 
