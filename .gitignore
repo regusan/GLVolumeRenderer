@@ -1,6 +1,7 @@
 NonShareVolume/*
 bin/*
 build/*
+volume/*
 # Prerequisites
 *.d
 

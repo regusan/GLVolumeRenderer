@@ -71,30 +71,34 @@ void main()
     {
         vec3 currentPos=rayDir*stepSize*float(i)+initialPos;
         
-        //開始は必ずボリューム内なのでボリューム外なら中断。
+        //ボリューム外なら中断(開始は必ずボリューム内なので)
         if(any(lessThan(currentPos,vec3(0.)))||any(greaterThan(currentPos,vec3(1.))))
         {
             break;
         }
         
-        float lightEnergy=0.;
+        float lightEnergy=0;//ライトの残留エネルギー
         float distanceToLight=distance(currentPos,light.pos);
+        //ライトのバウンディングスフィア内ならライティング計算開始
         if(distanceToLight<light.affectDistance)
         {
-            lightEnergy=1.;
+            lightEnergy=light.intensity;//ライトの初期エネルギー
             int lightMaxRayStep=int(distanceToLight/(stepSize));
             vec3 lightRayDir=normalize(light.pos-currentPos);
             float unitRayAttenuation=pow(.9,stepSize);
             for(int j=0;j<lightMaxRayStep;j++)
             {
+                //現在のライトレイの位置
                 vec3 lightRayPos=light.pos-lightRayDir*stepSize*float(j);
+                //その地点のボリュームが不透明なほどエネルギー減衰
                 lightEnergy*=1-texture(volumeTexture,currentPos).r;
-                if(lightEnergy<.0001)
+                //空間中を進むだけでも減衰
+                lightEnergy*=unitRayAttenuation;
+                if(lightEnergy<.0001)//エネルギーが十分小さくなったら終了
                 {
                     lightEnergy=0;
                     break;
                 }
-                lightEnergy*=unitRayAttenuation;
             }
         }
         
@@ -103,9 +107,9 @@ void main()
         float alpha=smoothstep(alphaRange.x,alphaRange.y,intensity);
         
         //HSV変換された色を描画
-        //colorAccum+=HSVtoRGB((1-alpha)*260,1.,alpha)*(light.col*light.intensity*lightEnergy+ambientLight);
-        colorAccum+=vec3(alpha)*(light.col*light.intensity*lightEnergy+ambientLight);
-        remainAlpha*=1-alpha;
+        colorAccum+=HSVtoRGB((1-alpha)*260,1.,alpha)*(light.col*lightEnergy+ambientLight);
+        // colorAccum+=vec3(alpha)*(light.col*light.intensity*lightEnergy+ambientLight);
+        remainAlpha*=1-alpha;//指数関数的に減少
         
         // 十分不透明になったら終了
         if(remainAlpha<.0001)

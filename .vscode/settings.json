@@ -58,6 +58,8 @@
         "format": "cpp",
         "iomanip": "cpp",
         "span": "cpp",
-        "variant": "cpp"
-    }
+        "variant": "cpp",
+        "queue": "cpp"
+    },
+    "idf.pythonInstallPath": "c:\\Espressif\\tools\\idf-python\\3.11.2\\python.exe"
 }
