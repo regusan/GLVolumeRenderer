@@ -64,6 +64,15 @@ public:
         glDeleteShader(fragmentShader);
     }
 
+    Shader(const std::string &computeShader)
+    {
+        GLuint computeShaderID = CompileShader(computeShader, GL_COMPUTE_SHADER);
+        programID = glCreateProgram();
+        glAttachShader(programID, computeShaderID);
+        glLinkProgram(programID);
+        glDeleteShader(computeShaderID);
+    }
+
     ~Shader()
     {
         glDeleteProgram(programID);

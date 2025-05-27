@@ -148,7 +148,7 @@ vector<Vertex> PointCloud::VolumeToVertices(const Volume::VolumeData &data)
                     float y = (j + 0.5f) * scale - 0.5f;
                     float z = (k + 0.5f) * scale - 0.5f;
                     float colorValue = static_cast<float>(cell->intencity) / 255.0f;
-                    vertices.push_back((Vertex){
+                    vertices.emplace_back(Vertex{
                         glm::vec3(x, y, z),
                         glm::float32(colorValue),
                     });

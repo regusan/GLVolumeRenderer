@@ -16,6 +16,7 @@
 #include "ImGuiManager.hpp"
 #include "FrameBuffer.hpp"
 #include "Camera.hpp"
+// #include "RadianceCache.hpp"
 
 using namespace std;
 
@@ -49,7 +50,10 @@ int main(int argc, char const *argv[])
     Shader raycastShader("shader/VolumeMarching.vert", "shader/VolumeMarching.frag");
     Shader raycastMaxShader("shader/VolumeMarching.vert", "shader/VolumeCasting-Max.frag");
     Shader &primaryShader = raycastShader;
-    primaryShader.Use();
+
+    // Shader radianceCacheShader = Shader("shader/ComputeShaderTest.glsl");
+    // RadianceCache radianceCache(256, radianceCacheShader);
+    // radianceCache.Update();
 
     std::ifstream volumeFile(volumeFilepath, std::ios::binary);
     if (!volumeFile.is_open())
@@ -57,7 +61,6 @@ int main(int argc, char const *argv[])
         cerr << "[ERROR] Failed to open file: " << volumeFilepath << endl;
         return -1;
     }
-    strcpy(imguiManager.fileBuffer, volumeFilepath.c_str());
 
     // ボリュームデータの定義
     Volume volume = Volume(volumeFile);
@@ -72,6 +75,7 @@ int main(int argc, char const *argv[])
     /// OpenGLの描画を行うメインウィンドウのバッファ
     FrameBuffer oglBuffer(100, 100);
     imguiManager.Initialize(window.GetGLFWwindow(), oglBuffer);
+    strcpy(imguiManager.fileBuffer, volumeFilepath.c_str());
 
     /// カメラインスタンス
     Camera camera(window.GetGLFWwindow());
@@ -121,9 +125,9 @@ int main(int argc, char const *argv[])
         }
         else if (imguiManager.currentShaderIndex == 1)
         { // レイキャスティングで描画(Max)
-            primaryShader = raycastMaxShader;
-            primaryShader.Use();
-            volume.Draw();
+            /*             primaryShader = raycastMaxShader;
+                        primaryShader.Use();
+                        volume.Draw(); */
         }
         else if (imguiManager.currentShaderIndex == 2)
         { // ポイントクラウドで描画

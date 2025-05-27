@@ -82,7 +82,7 @@ void CustomImGuiManager::RenderUI()
         string frameRate = "fps History:\t" + to_string(static_cast<int>(ImGui::GetIO().Framerate)) + "fps";
 
         // FPSグラフの描画
-        ImGui::PlotLines("", fpsHistory.data(), fpsHistory.size(), 0, frameRate.data(), minfps / 1.5, maxfps * 1.5, ImVec2(-1, 80));
+        // ImGui::PlotLines("", fpsHistory.data(), fpsHistory.size(), 0, frameRate.data(), minfps / 1.5, maxfps * 1.5, ImVec2(-1, 80));
 
         // Near/Far Clip 調整
         ImGui::SliderFloat("Near Clip", &nearClip, 0.001f, 3.0f);
@@ -117,12 +117,12 @@ void CustomImGuiManager::RenderUI()
     if (ImGui::Begin("Light Editor"))
     {
 
-        ImGui::ColorEdit3("AmbientLightColor", &ambientLight[0]);
+        ImGui::ColorPicker3("AmbientLightColor", &ambientLight[0]);
         ImGui::Text("Position");
         ImGui::DragFloat3("Position", &light.pos[0], 0.01f);
 
         ImGui::Text("Color");
-        ImGui::ColorEdit3("Color", &light.col[0]);
+        ImGui::ColorPicker3("Color", &light.col[0]);
 
         ImGui::Text("Affect Distance");
         ImGui::DragFloat("Affect Distance", &light.affectDistance, 0.01f, 0.0f, 1.0f);
