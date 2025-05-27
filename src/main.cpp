@@ -75,7 +75,7 @@ int main(int argc, char const *argv[])
     /// OpenGLの描画を行うメインウィンドウのバッファ
     FrameBuffer oglBuffer(100, 100);
     imguiManager.Initialize(window.GetGLFWwindow(), oglBuffer);
-    strcpy(imguiManager.fileBuffer, volumeFilepath.c_str());
+    imguiManager.fileBuffer = volumeFilepath;
 
     /// カメラインスタンス
     Camera camera(window.GetGLFWwindow());

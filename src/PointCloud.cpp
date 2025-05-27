@@ -131,7 +131,7 @@ PointCloud::~PointCloud()
 vector<Vertex> PointCloud::VolumeToVertices(const Volume::VolumeData &data)
 {
     vector<Vertex> vertices;
-    vertices.reserve(data.size() * data.size() * data.size() * 0.1); // 10%でとりあえずアロケート
+    vertices.reserve(static_cast<size_t>(data.size() * data.size() * data.size() * 0.1f)); // 10%でとりあえずアロケート
     int N = data.size();
     float scale = 1.0f / static_cast<float>(N);
     constexpr size_t step = 1;

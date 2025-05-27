@@ -1,5 +1,6 @@
 #include "ImGuiManager.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include "imgui/imgui_stdlib.h"
 using namespace std;
 ImGuiManager::ImGuiManager() {}
 
@@ -10,9 +11,9 @@ ImGuiManager::~ImGuiManager()
     ImGui::DestroyContext();
 }
 
-void ImGuiManager::Initialize(GLFWwindow *window, FrameBuffer &frameBuffer)
+void ImGuiManager::Initialize(GLFWwindow *window, FrameBuffer &_frameBuffer)
 {
-    this->frameBuffer = frameBuffer;
+    this->frameBuffer = _frameBuffer;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -90,7 +91,7 @@ void CustomImGuiManager::RenderUI()
 
         ImGui::SliderFloat("Point Size", &pointSize, 0.1f, 2.0f);
 
-        ImGui::InputText("File Path", fileBuffer, 256);
+        ImGui::InputText("File Path", &fileBuffer);
         // ファイル読み取り
         if (ImGui::Button("Load Volume"))
         {
@@ -135,7 +136,7 @@ void CustomImGuiManager::RenderUI()
     // OpenGL描画用のウィンドウ
     if (ImGui::Begin("OpenGL Render"))
     {
-        this->mainWindowSize = ImGui::GetContentRegionAvail();
+        this->mainWindowSize = {ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y};
         ImVec2 pos = ImGui::GetCursorScreenPos();
 
         // we access the ImGui window size

@@ -12,8 +12,8 @@
 struct PointLight
 {
     glm::vec3 pos = glm::vec3(0.5f);
-    glm::vec3 col = glm::vec3(1);
-    float affectDistance = 0.3;
+    glm::vec3 col = glm::vec3(1.f);
+    float affectDistance = 0.3f;
     float intensity = 1.0;
     void UploadBuffer(GLuint programID, std::string uniformName)
     {

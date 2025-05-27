@@ -17,7 +17,7 @@ class ImGuiManager
 {
 protected:
     FrameBuffer frameBuffer;
-    ImVec2 mainWindowSize = {640, 320};
+    glm::ivec2 mainWindowSize = {640, 320};
 
 public:
     ImGuiManager();
@@ -28,7 +28,7 @@ public:
     virtual void EndFrame();
     virtual void RenderUI() = 0;
     void RenderDockSpace(); // ドッキングスペース描画
-    ImVec2 GetMainWindowSize() const { return mainWindowSize; };
+    glm::ivec2 GetMainWindowSize() const { return mainWindowSize; };
 };
 
 class CustomImGuiManager : public ImGuiManager
@@ -43,10 +43,10 @@ public:
     float alphaMinMax[2] = {0.0f, 1.0f};
     float pointSize = 1.0f;
     std::string filePath = "";
-    char fileBuffer[256];
+    std::string fileBuffer;
     glm::vec3 cameraPos;
     PointLight light;
-    glm::vec3 ambientLight = glm::vec3(0.3);
+    glm::vec3 ambientLight = glm::vec3(0.3f);
 
     virtual void RenderUI() override;
     int currentShaderIndex = 0;

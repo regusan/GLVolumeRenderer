@@ -11,7 +11,7 @@ Volume::Volume(ifstream &file)
     file.seekg(0, ios::beg);            // 先頭まで戻す
 
     size_t totalElements = static_cast<int>(fileSize);
-    this->size = cbrt(totalElements); // Nを推測
+    this->size = static_cast<size_t>(cbrt(totalElements)); // Nを推測
 
     if (this->size * this->size * this->size != totalElements)
     {

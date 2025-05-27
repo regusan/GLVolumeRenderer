@@ -24,7 +24,7 @@ private:
     const glm::dvec2 resetPos = {-1000, -1000};
     glm::dvec2 lastCursorRotPos = Camera::resetPos;
     glm::dvec2 lastCursorPosPos = Camera::resetPos;
-    float cameraSpeed = 0.01;
+    float cameraSpeed = 0.01f;
 
 public:
     glm::mat4 view;

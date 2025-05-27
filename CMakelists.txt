@@ -48,7 +48,7 @@ target_compile_definitions(volumen PRIVATE GLM_ENABLE_EXPERIMENTAL) # <- これ�
 if(MSVC)
     # MSVC (Windows) 用のオプション
     target_compile_options(volumen PRIVATE
-        /W4       # 高い警告レベル
+        /W2       # 高い警告レベル
         /EHsc     # C++ 例外処理モデル
         /utf-8    # ★★★ ソースと実行文字セットを UTF-8 として扱う ★★★
         "$<$<CONFIG:Release>:/O2>"
