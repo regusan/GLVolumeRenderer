@@ -5,13 +5,39 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) 起動",
-            "type": "cppvsdbg",
+            "name": "(gdb) 起動",
+            "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/volumen.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/MinGW/bin/gdb.exe",
+            "setupCommands": [
+                {
+                    "description": "gdb の再フォーマットを有効にする",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "逆アセンブリ フレーバーを Intel に設定",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+        {
+            "name": "ボリュームデータを読み込んで起動",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Release/volumen.exe",
+            "args": ["NonShareVolume/256_256_256X.dat"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "externalTerminal"
         }
