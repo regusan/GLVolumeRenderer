@@ -16,13 +16,22 @@
 #include "ImGuiManager.hpp"
 #include "FrameBuffer.hpp"
 #include "Camera.hpp"
-// #include "RadianceCache.hpp"
+#include "RadianceCache.hpp"
 
 using namespace std;
 
 int main(int argc, char const *argv[])
 {
-
+    try
+    {                                                    // ロケール設定に挑戦
+        std::locale::global(std::locale("ja_JP.UTF-8")); // or "Japanese_Japan.UTF8" or ".UTF8"
+        std::cout.imbue(std::locale());
+        std::wcout.imbue(std::locale());
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::cerr << "Locale setting failed: " << e.what() << std::endl;
+    }
     if (argc < 2)
     {
     }
@@ -51,7 +60,7 @@ int main(int argc, char const *argv[])
     Shader raycastMaxShader("shader/VolumeMarching.vert", "shader/VolumeCasting-Max.frag");
     Shader &primaryShader = raycastShader;
 
-    // Shader radianceCacheShader = Shader("shader/ComputeShaderTest.glsl");
+    // Shader radianceCacheShader = Shader("shader/RadianceCache.glsl");
     // RadianceCache radianceCache(256, radianceCacheShader);
     // radianceCache.Update();
 
@@ -105,6 +114,7 @@ int main(int argc, char const *argv[])
             glUniform1f(glGetUniformLocation(primaryShader.GetProgramID(), "pointSize"),
                         imguiManager.pointSize);
             glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "volumeTexture"), 0);
+            // glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "radianceChache"), 1);
             glUniform1i(glGetUniformLocation(primaryShader.GetProgramID(), "volumeResolution"),
                         volume.size);
             glUniform3f(glGetUniformLocation(primaryShader.GetProgramID(), "ambientLight"),
@@ -125,9 +135,9 @@ int main(int argc, char const *argv[])
         }
         else if (imguiManager.currentShaderIndex == 1)
         { // レイキャスティングで描画(Max)
-            /*             primaryShader = raycastMaxShader;
-                        primaryShader.Use();
-                        volume.Draw(); */
+            primaryShader = raycastMaxShader;
+            primaryShader.Use();
+            volume.Draw();
         }
         else if (imguiManager.currentShaderIndex == 2)
         { // ポイントクラウドで描画
