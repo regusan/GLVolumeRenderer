@@ -1,6 +1,8 @@
 #include <iostream>
 #include <numeric>
 #include <algorithm>
+#include <vector>
+#include <unordered_map>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -145,10 +147,10 @@ double calculateMeanAbsoluteDifference(const std::vector<GLuint> &A, const std::
 std::vector<GLuint> PointCloud::ReorderIndices(const std::vector<GLuint> &X, const std::vector<GLuint> &Y, const std::vector<GLuint> &Z, const glm::mat4 &MV)
 {
     using sizevec3 = glm::vec<3, size_t, glm::defaultp>;
-
+    size_t idxSize = X.size();
     // 視点順に並び替えられたインデックス
     std::vector<GLuint> reordered;
-    reordered.reserve(X.size());
+    reordered.reserve(idxSize);
 
     // 視点正面ベクトルを取得
     const glm::vec3 viewDir = glm::normalize(glm::vec3(glm::inverse(MV)[2])) + glm::vec3(0.00001f); // 発散防止
@@ -158,52 +160,49 @@ std::vector<GLuint> PointCloud::ReorderIndices(const std::vector<GLuint> &X, con
     // 蓄積された軸方向の重み(符号なし)
     glm::vec3 err = glm::vec3(0);
     // そのインデックスがすでに登録されたかどうか
-    vector<bool> used(X.size(), false);
+    vector<bool> used(idxSize, false);
 
-    while (reordered.size() <= X.size())
+    while (reordered.size() < idxSize)
     {
         // 軸方向の重みを符号なしで加算
         err += abs(viewDir);
 
-        if (head.x < X.size() && err.x > 1.0f)
+        if (head.x < idxSize && err.x > 1.0f)
         {
             // 処理対象とするインデックス番号。viewDirが負なら末尾から取得していく
-            GLuint idx = (viewDir.x > 0) ? X[head.x] : X[X.size() - head.x - 1];
+            GLuint idx = (viewDir.x >= 0) ? X[head.x] : X[idxSize - head.x - 1];
             // 未使用のインデックスまで進める
-            while (head.x < X.size() && used[idx])
+            while (head.x < idxSize && used[idx])
             {
+                idx = (viewDir.x > 0) ? X[head.x] : X[idxSize - head.x - 1];
                 head.x++;
-                idx = (viewDir.x > 0) ? X[head.x] : X[X.size() - head.x - 1];
             }
             reordered.push_back(idx); // 未使用のインデックスを追加
             used[idx] = true;         // インデックスを使用済みにする
-            head.x++;                 // 次のインデックスへ
             err.x -= 1.0f;
         }
-        if (head.y < Y.size() && err.y > 1.0f)
+        if (head.y < idxSize && err.y >= 1.0f)
         {
-            GLuint idx = (viewDir.y > 0) ? Y[head.y] : Y[Y.size() - head.y - 1];
-            while (head.y < Y.size() && used[idx])
+            GLuint idx = (viewDir.y > 0) ? Y[head.y] : Y[idxSize - head.y - 1];
+            while (head.y < idxSize && used[idx])
             {
+                idx = (viewDir.y > 0) ? Y[head.y] : Y[idxSize - head.y - 1];
                 head.y++;
-                idx = (viewDir.y > 0) ? Y[head.y] : Y[Y.size() - head.y - 1];
             }
             reordered.push_back(idx);
             used[idx] = true;
-            head.y++;
             err.y -= 1.0f;
         }
-        if (head.z < Z.size() && err.z > 1.0f)
+        if (head.z < idxSize && err.z >= 1.0f)
         {
-            GLuint idx = (viewDir.z > 0) ? Z[head.z] : Z[Z.size() - head.z - 1];
-            while (head.z < Z.size() && used[idx])
+            GLuint idx = (viewDir.z > 0) ? Z[head.z] : Z[idxSize - head.z - 1];
+            while (head.z < idxSize && used[idx])
             {
+                idx = (viewDir.z > 0) ? Z[head.z] : Z[idxSize - head.z - 1];
                 head.z++;
-                idx = (viewDir.z > 0) ? Z[head.z] : Z[Z.size() - head.z - 1];
             }
             reordered.push_back(idx);
             used[idx] = true;
-            head.z++;
             err.z -= 1.0f;
         }
     }
@@ -257,7 +256,7 @@ vector<Vertex> PointCloud::VolumeToVertices(const Volume::VolumeData &data)
                     float y = (j + 0.5f) * scale - 0.5f;
                     float z = (k + 0.5f) * scale - 0.5f;
                     float colorValue = static_cast<float>(cell->intencity) / 255.0f;
-                    vertices.emplace_back(Vertex{
+                    vertices.push_back(Vertex{
                         glm::vec3(x, y, z),
                         glm::float32(colorValue),
                     });
@@ -303,16 +302,23 @@ void PointCloud::Draw(const glm::mat4 &view)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, reordered.size() * sizeof(GLuint), reordered.data(), GL_DYNAMIC_DRAW);
 
+    vector<GLuint> indices(reordered.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    auto correct = CorrectDepthSort(this->vertices, indices, view);
+
+    auto wrongs = calculateMeanAbsoluteDifference(reordered, correct);
+    cout << u8"近似ソートの平均インデックス誤差:" << wrongs << "/" << correct.size() << u8",誤り率" << static_cast<double>(wrongs) * 100 / correct.size() << "%" << endl;
+
     // 描画設定
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
-
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    // glEnable(GL_POINT_SPRITE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glPointSize(1.0f);
+    // glPointSize(1.0f);
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
     glBindVertexArray(vao);
-    glDrawElements(GL_POINTS, reordered.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_POINTS, indicesX.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
