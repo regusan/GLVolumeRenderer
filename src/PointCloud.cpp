@@ -26,6 +26,115 @@ void CreateAxisAlignedSortedIndices(std::vector<Vertex> &vertices, std::vector<G
     std::sort(indices.begin(), indices.end(), std::forward<Compare>(compare));
 }
 
+/// @brief 正しい深度ソート（ビュー座標系のZ値基準）を行う関数 (奥から手前へ)
+/// @param vertices 全ての頂点の3D座標リスト
+/// @param indices_to_sort ソート対象の頂点インデックスリスト (通常は 0 から N-1)
+/// @param MV モデルビュー行列
+/// @return 深度ソートされた頂点インデックスリスト (奥から手前)
+std::vector<GLuint> CorrectDepthSort(
+    const std::vector<Vertex> &vertices,
+    const std::vector<GLuint> &indices_to_sort,
+    const glm::mat4 &MV)
+{
+    size_t n = indices_to_sort.size();
+    if (n == 0)
+    {
+        return {}; // 空なら空を返す
+    }
+
+    // 1. 深度とインデックスのペアを格納するベクターを作成
+    std::vector<std::pair<float, GLuint>> depth_index_pairs;
+    depth_index_pairs.reserve(n);
+
+    // 2. 各頂点の深度を計算し、ペアを作成
+    for (GLuint index : indices_to_sort)
+    {
+        // 頂点インデックスが頂点リストの範囲内かチェック (念のため)
+        if (index >= vertices.size())
+        {
+            // エラー処理 (ここではスキップまたは例外スロー)
+            std::cerr << "Warning: Index " << index << " is out of bounds." << std::endl;
+            continue;
+        }
+
+        // 3D座標を取得
+        const glm::vec3 &vertex_pos = vertices[index].position;
+
+        // 4Dベクトルに変換 (w=1.0) してMV行列を適用
+        glm::vec4 vertex_view = MV * glm::vec4(vertex_pos, 1.0f);
+
+        // Z値（深度）とインデックスをペアにして追加
+        // vertex_view.z がビュー座標系の深度
+        depth_index_pairs.push_back({vertex_view.z, index});
+    }
+
+    // 3. 深度 (ペアの最初の要素) に基づいてソート
+    // std::pair はデフォルトで最初の要素を基準に昇順ソートする。
+    // Z値が小さい（より負に近い、つまり遠い）順になるため、
+    // これで「奥から手前へ」のソートになる。
+    std::sort(depth_index_pairs.begin(), depth_index_pairs.end());
+
+    // 4. ソートされたインデックスを抽出
+    std::vector<GLuint> sorted_indices;
+    sorted_indices.reserve(depth_index_pairs.size());
+    for (const auto &pair : depth_index_pairs)
+    {
+        sorted_indices.push_back(pair.second); // ペアの2番目の要素（インデックス）を追加
+    }
+
+    return sorted_indices;
+}
+
+/// @brief 2つの GLuint 配列間の平均絶対差 (MAD) を計算する関数
+/// @param A 基準となるソート済み配列
+/// @param B 比較対象のソート済み配列
+/// @return 平均絶対差 (MAD)
+double calculateMeanAbsoluteDifference(const std::vector<GLuint> &A, const std::vector<GLuint> &B)
+{
+    // 1. サイズチェック
+    if (A.size() != B.size())
+    {
+        throw std::runtime_error("Error: Input vectors must have the same size.");
+    }
+
+    size_t n = A.size();
+    if (n == 0)
+    {
+        return 0.0; // 空の配列の場合、差は0
+    }
+
+    // 2. 配列 A のインデックスマップを作成
+    std::unordered_map<GLuint, size_t> mapA;
+    mapA.reserve(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+        mapA[A[i]] = i;
+    }
+
+    // 3. 差分の合計計算
+    long long sum_abs_diff = 0; // 合計は大きくなる可能性があるので long long を使用
+    for (size_t i = 0; i < n; ++i)
+    {
+        GLuint element_B = B[i];
+
+        // B の要素が A に存在するかチェック
+        auto it = mapA.find(element_B);
+        if (it == mapA.end())
+        {
+            throw std::runtime_error("Error: Vector B contains an element not present in A.");
+        }
+
+        size_t index_A = it->second;
+        size_t index_B = i;
+
+        // 差の絶対値を加算 (size_t同士の引き算は危険なので、符号付き整数にキャスト)
+        sum_abs_diff += std::abs(static_cast<long long>(index_A) - static_cast<long long>(index_B));
+    }
+
+    // 4. 平均の計算 (doubleで計算するためにキャスト)
+    return static_cast<double>(sum_abs_diff) / n;
+}
+
 // TODO::並列実行できるように
 /// @brief 各軸にソートされた頂点インデックスと視点ベクトルを基に深度ソートを近似する関数
 /// @param X X軸方向にソートされた頂点インデックス
