@@ -18,6 +18,8 @@ uniform int volumeResolution;
 uniform vec3 ambientLight;
 uniform Light light;
 
+layout(binding=1,r32f)uniform writeonly image3D photonVolume;
+
 const float SQRT3=sqrt(3);
 int maxSteps=int(sqrt(3.*volumeResolution*volumeResolution));//1ステップで1ボクセル参照するような長さにする(最悪でも)
 const float boxFarestLength=SQRT3;//sqrt(1^2+1^2+1^2)バウンディングボックス内での最長距離
@@ -83,17 +85,16 @@ void main()
         if(distanceToLight<light.affectDistance)
         {
             lightEnergy=light.intensity;//ライトの初期エネルギー
+            lightEnergy*=pow(.9,distanceToLight);//距離による減衰をあらかじめ考慮
             int lightMaxRayStep=int(distanceToLight/(stepSize));
             vec3 lightRayDir=normalize(light.pos-currentPos);
-            float unitRayAttenuation=pow(.9,stepSize);
             for(int j=0;j<lightMaxRayStep;j++)
             {
                 //現在のライトレイの位置
                 vec3 lightRayPos=light.pos-lightRayDir*stepSize*float(j);
                 //その地点のボリュームが不透明なほどエネルギー減衰
-                lightEnergy*=1-texture(volumeTexture,currentPos).r;
-                //空間中を進むだけでも減衰
-                lightEnergy*=unitRayAttenuation;
+                float opacity = texture(volumeTexture, lightRayPos).r;
+                lightEnergy *= 1.0 - smoothstep(alphaRange.x, alphaRange.y, opacity);
                 if(lightEnergy<.0001)//エネルギーが十分小さくなったら終了
                 {
                     lightEnergy=0;
