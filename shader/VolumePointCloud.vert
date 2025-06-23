@@ -46,9 +46,11 @@ void main()
     
     // 位置設定
     gl_Position=projection*view*model*vec4(inPosition,1.);
-    centorSS=gl_Position.xy;
-    
+    centorSS=gl_Position.xy / gl_Position.w * 0.5 + 0.5;
+    gl_PointSize = 10;
     gl_PointSize=clamp(3./gl_Position.z,1.,100.)*pointSize;
     o_pointSize=gl_PointSize;
-    fragColor=vec4(HSVtoRGB((1-alpha)*260,1.,alpha),alpha);
+    
+    float smoothedAlpha=smoothstep(alphaRange.x,alphaRange.y,alpha);
+    fragColor=vec4(HSVtoRGB((1-smoothedAlpha)*260,1.,smoothedAlpha),smoothedAlpha);
 }

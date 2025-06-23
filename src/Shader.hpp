@@ -66,7 +66,8 @@ public:
 
     Shader(const std::string &computeShader)
     {
-        GLuint computeShaderID = CompileShader(computeShader, GL_COMPUTE_SHADER);
+        std::string computeSource = LoadShaderSource(computeShader);
+        GLuint computeShaderID = CompileShader(computeSource, GL_COMPUTE_SHADER);
         programID = glCreateProgram();
         glAttachShader(programID, computeShaderID);
         glLinkProgram(programID);

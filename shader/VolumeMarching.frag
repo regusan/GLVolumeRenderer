@@ -59,65 +59,61 @@ void main()
     else{//背面が映っている＝カメラがボリューム内ならカメラ位置からレイ開始
         initialPos=cameraPos+vec3(.5)+rayDir*rayStartOffset;
     }
-    
+
     // レイの最長距離(ボックス内での最長距離)か、ファークリップ距離の短いほう最短距離とする
     float maxRayDistance=min(boxFarestLength+rayStartOffset,nearFarClip.y);
     // 1回でレイを進める長さを計算。
     float stepSize=maxRayDistance/float(maxSteps);
-    
     float remainAlpha=1.;//残留している透明度
     vec3 colorAccum=vec3(0.);//加算されていく最終的な色
-    
     //レイマーチング開始
     for(int i=0;i<maxSteps;i++)
     {
         vec3 currentPos=rayDir*stepSize*float(i)+initialPos;
-        
         //ボリューム外なら中断(開始は必ずボリューム内なので)
         if(any(lessThan(currentPos,vec3(0.)))||any(greaterThan(currentPos,vec3(1.))))
         {
             break;
         }
-        
         float lightEnergy=0;//ライトの残留エネルギー
         float distanceToLight=distance(currentPos,light.pos);
         //ライトのバウンディングスフィア内ならライティング計算開始
         if(distanceToLight<light.affectDistance)
         {
             lightEnergy=light.intensity;//ライトの初期エネルギー
-            lightEnergy*=pow(.9,distanceToLight);//距離による減衰をあらかじめ考慮
+            //投影面積増加による距離減衰
+            //d^2/(r^2)を用いて、0~distの値距離を1~0の二次式に正規化し、光の減衰量とする
+            lightEnergy*=(light.affectDistance-distanceToLight)*(light.affectDistance-distanceToLight)/(light.affectDistance*light.affectDistance);
             int lightMaxRayStep=int(distanceToLight/(stepSize));
             vec3 lightRayDir=normalize(light.pos-currentPos);
+            vec3 lightRayUnitStep=lightRayDir*stepSize;
+            vec3 lightRayPos=light.pos;
             for(int j=0;j<lightMaxRayStep;j++)
             {
                 //現在のライトレイの位置
-                vec3 lightRayPos=light.pos-lightRayDir*stepSize*float(j);
+                lightRayPos-=lightRayUnitStep;
                 //その地点のボリュームが不透明なほどエネルギー減衰
                 float opacity = texture(volumeTexture, lightRayPos).r;
                 lightEnergy *= 1.0 - smoothstep(alphaRange.x, alphaRange.y, opacity);
-                if(lightEnergy<.0001)//エネルギーが十分小さくなったら終了
+                if(lightEnergy<.001)//エネルギーが十分小さくなったら終了
                 {
                     lightEnergy=0;
                     break;
                 }
             }
         }
-        
         float intensity=texture(volumeTexture,currentPos).r;//サンプル
         //alphamin~alphamaxの範囲を0~1に正規化して、現在のアルファ値とする。
         float alpha=smoothstep(alphaRange.x,alphaRange.y,intensity);
-        
         //HSV変換された色を描画
         colorAccum+=HSVtoRGB((1-alpha)*260,1.,alpha)*(light.col*lightEnergy+ambientLight);
         // colorAccum+=vec3(alpha)*(light.col*light.intensity*lightEnergy+ambientLight);
         remainAlpha*=1-alpha;//指数関数的に減少
-        
         // 十分不透明になったら終了
         if(remainAlpha<.0001)
         {
             break;
         }
-        
     }
     
     //色を出力

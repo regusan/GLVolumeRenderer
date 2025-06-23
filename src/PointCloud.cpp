@@ -301,14 +301,14 @@ void PointCloud::Draw(const glm::mat4 &view)
     const vector<GLuint> reordered = PointCloud::ReorderIndices(indicesX, indicesY, indicesZ, view);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, reordered.size() * sizeof(GLuint), reordered.data(), GL_DYNAMIC_DRAW);
-
+    /*
     vector<GLuint> indices(reordered.size());
     std::iota(indices.begin(), indices.end(), 0);
     auto correct = CorrectDepthSort(this->vertices, indices, view);
 
     auto wrongs = calculateMeanAbsoluteDifference(reordered, correct);
     cout << u8"近似ソートの平均インデックス誤差:" << wrongs << "/" << correct.size() << u8",誤り率" << static_cast<double>(wrongs) * 100 / correct.size() << "%" << endl;
-
+    */
     // 描画設定
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
