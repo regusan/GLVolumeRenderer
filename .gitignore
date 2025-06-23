@@ -3,6 +3,7 @@ bin/*
 build/*
 volume/*
 imgui.ini
+docs/*
 #WIndows
 vcpkg_installed/*
 out/*
