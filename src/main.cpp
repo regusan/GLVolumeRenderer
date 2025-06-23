@@ -16,7 +16,7 @@
 #include "ImGuiManager.hpp"
 #include "FrameBuffer.hpp"
 #include "Camera.hpp"
-#include "RadianceCache.hpp"
+#include "PhotonVolume.hpp"
 
 using namespace std;
 
@@ -52,7 +52,7 @@ int main(int argc, char const *argv[])
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
+    glClearColor(0.9f, 0.9f, 0.9f, 0.1f);
 
     // シェーダー読み込み
     Shader pointCloudShader("shader/VolumePointCloud.vert", "shader/VolumePointCloud.frag");
@@ -60,9 +60,12 @@ int main(int argc, char const *argv[])
     Shader raycastMaxShader("shader/VolumeMarching.vert", "shader/VolumeCasting-Max.frag");
     Shader &primaryShader = raycastShader;
 
-    // Shader radianceCacheShader = Shader("shader/RadianceCache.glsl");
-    // RadianceCache radianceCache(256, radianceCacheShader);
-    // radianceCache.Update();
+    /*
+    Shader photonVolumeShader = Shader("shader/ComputePhoton.glsl");
+    PhotonVolume photonCache(255, photonVolumeShader);
+    photonCache.Update();
+    photonCache.PrintData();
+    */
 
     std::ifstream volumeFile(volumeFilepath, std::ios::binary);
     if (!volumeFile.is_open())
