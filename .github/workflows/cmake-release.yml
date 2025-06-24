@@ -14,10 +14,10 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: GLVolumeRenderer-linux-x64
-            output_name: GLVolumeRenderer
+            output_name: volumen
           - os: windows-latest
             artifact_name: GLVolumeRenderer-windows-x64
-            output_name: GLVolumeRenderer.exe
+            output_name: volumen.exe
 
     runs-on: ${{ matrix.os }}
 
