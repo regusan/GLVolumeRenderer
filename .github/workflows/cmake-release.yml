@@ -1,0 +1,90 @@
+name: CMake Release with Artifacts
+
+# 'v'で始まるタグがプッシュされた時のみ実行
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build_and_package:
+    strategy:
+      matrix:
+        # リリース成果物を作成したいOS/構成を指定
+        include:
+          - os: ubuntu-latest
+            artifact_name: GLVolumeRenderer-linux-x64
+            output_name: GLVolumeRenderer
+          - os: windows-latest
+            artifact_name: GLVolumeRenderer-windows-x64
+            output_name: GLVolumeRenderer.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # (オプション) 依存関係のインストール
+    # - name: Install dependencies (Linux)
+    #   if: runner.os == 'Linux'
+    #   run: sudo apt-get update && sudo apt-get install -y libglfw3-dev
+      
+    - name: Configure CMake
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+
+    - name: Build
+      run: cmake --build build --config Release -j
+
+    # 成果物をパッケージング
+    - name: Package artifacts
+      shell: bash
+      run: |
+        # 成果物用のディレクトリを作成
+        mkdir -p artifact
+        # ビルドされた実行ファイルをコピー
+        cp build/${{ matrix.output_name }} artifact/
+        # (オプション) READMEやライセンスファイルもコピー
+        cp README.md artifact/
+        cp LICENSE artifact/
+
+    # パッケージをアップロードして、次のジョブで使えるようにする
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: artifact
+
+  create_release:
+    # build_and_package ジョブがすべて成功したら実行
+    needs: build_and_package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts # 全てのマトリックス成果物をダウンロード
+
+      - name: Compress artifacts
+        shell: bash
+        run: |
+          for dir in artifacts/*; do
+            if [ -d "$dir" ]; then
+              # ディレクトリ名でZIPファイルを作成
+              zip -r "${dir}.zip" "$dir"
+            fi
+          done
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          # タグをリリース名として使用
+          name: Release ${{ github.ref_name }}
+          # リリースの説明文 (空欄可)
+          body: "See CHANGELOG.md for details."
+          # 下書きとしてリリースを作成
+          draft: false
+          # プレリリースとしてマーク
+          prerelease: false
+          # アップロードするファイルをワイルドカードで指定
+          files: artifacts/**/*.zip
