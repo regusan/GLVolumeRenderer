@@ -74,6 +74,9 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_README"></a> GLVolumeRenderer is a rendering tool for visualizing NxNxN 3D binary volume data.</p>
 <h1><a class="anchor" id="autotoc_md1"></a>
+Wiki</h1>
+<p><a href="https://regusan.github.io/GLVolumeRenderer/">wiki page</a></p>
+<h1><a class="anchor" id="autotoc_md2"></a>
 Features</h1>
 <ul>
 <li>Raymarching rendering mode</li>
@@ -83,42 +86,42 @@ Features</h1>
 <li>Volumetric Lighting</li>
 <li>Max-Intencity-Projection Rendering mode</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md2"></a>
+<h1><a class="anchor" id="autotoc_md3"></a>
 Screenshots</h1>
 <p><img src="Demo-1.gif" alt="" class="inline" title="Demo1"/>     <img src="Demo-2.png" alt="" class="inline" title="Demo2"/>    </p>
 <p>The void cube volume data was created using <a href="https://github.com/regusan/SDF2Volume">SDF2Volume</a>.</p>
-<h1><a class="anchor" id="autotoc_md3"></a>
+<h1><a class="anchor" id="autotoc_md4"></a>
 Installation and Execution Example</h1>
-<h2><a class="anchor" id="autotoc_md4"></a>
+<h2><a class="anchor" id="autotoc_md5"></a>
 1. Clone the repository</h2>
 <div class="fragment"><div class="line">git clone https://github.com/regusan/GLVolumeRenderer.git</div>
 <div class="line">cd GLVolumeRenderer</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md5"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
 2. Preparing Dependencies</h2>
 <div class="fragment"><div class="line">sudo apt-get update</div>
 <div class="line">sudo apt-get install libglew-dev libglfw3-dev libglm-dev</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
 3. Build(Ubuntu)</h2>
 <div class="fragment"><div class="line">cmake -S . -B build</div>
 <div class="line">cmake --build build -j</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md8"></a>
 4. Run(Ubuntu)</h2>
 <div class="fragment"><div class="line">./build/volumen volume/voidcube-256.dat</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md8"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
 3. Build(WIndows)</h2>
 <div class="fragment"><div class="line">cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=your/path</div>
 <div class="line">cmake --build build --target clean</div>
 <div class="line">cmake --build build --config Release</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
 4. Run(WIndows)</h2>
 <div class="fragment"><div class="line">./build\Release\volumen.exe NonShareVolume\256_256_256B.dat</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md10"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
 Usage</h1>
 <ul>
 <li>Right-click drag: Rotate view</li>
 <li>Mouse wheel: Zoom in/out</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
 Third-Party Licenses</h1>
 <p>This project uses the following third-party libraries. Their licenses are as follows:</p>
 <ul>
