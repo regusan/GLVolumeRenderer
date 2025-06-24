@@ -33,11 +33,15 @@ jobs:
     # === ライブラリインストール ===   
     # === vcpkgによる依存関係のインストールステップ===
     - name: Install dependencies with vcpkg
+      id: runvcpkg # <-- IDを追加
       uses: lukka/run-vcpkg@v11
       with:
-        # vcpkg.json に書かれた依存関係をインストール
         vcpkgJsonGlob: '**/vcpkg.json'
 
+    # 環境変数の値を表示する
+    - name: Verify VCPKG_INSTALLATION_ROOT
+      run: echo "VCPKG_INSTALLATION_ROOT is: ${{ env.VCPKG_INSTALLATION_ROOT }}"
+    
     # ============================
     - name: Configure CMake
       run: >
