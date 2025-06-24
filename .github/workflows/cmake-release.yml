@@ -4,7 +4,7 @@ name: CMake Release with Artifacts
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   build_and_package:
@@ -22,50 +22,50 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # (オプション) 依存関係のインストール
-    # - name: Install dependencies (Linux)
-    #   if: runner.os == 'Linux'
-    #   run: sudo apt-get update && sudo apt-get install -y libglfw3-dev
-    
-    # === ライブラリインストール ===   
-    # === vcpkgによる依存関係のインストールステップ===
-    - name: Install dependencies with vcpkg
-      id: runvcpkg # <-- IDを追加
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgJsonGlob: '**/vcpkg.json'
-    
-    # ============================
-    - name: Configure CMake
-      run: >
-        cmake -S . -B build
-        -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_TOOLCHAIN_FILE=${env.VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake
-        -DBUILD_SHARED_LIBS=OFF
-    - name: Build
-      run: cmake --build build --config Release -- -j
+      # (オプション) 依存関係のインストール
+      # - name: Install dependencies (Linux)
+      #   if: runner.os == 'Linux'
+      #   run: sudo apt-get update && sudo apt-get install -y libglfw3-dev
 
-    # 成果物をパッケージング
-    - name: Package artifacts
-      shell: bash
-      run: |
-        # 成果物用のディレクトリを作成
-        mkdir -p artifact
-        # ビルドされた実行ファイルをコピー
-        cp build/${{ matrix.output_name }} artifact/
-        # (オプション) READMEやライセンスファイルもコピー
-        cp README.md artifact/
-        cp LICENSE artifact/
+      # === ライブラリインストール ===
+      # === vcpkgによる依存関係のインストールステップ===
+      - name: Install dependencies with vcpkg
+        id: runvcpkg # <-- IDを追加
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: "**/vcpkg.json"
 
-    # パッケージをアップロードして、次のジョブで使えるようにする
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.artifact_name }}
-        path: artifact
+      # ============================
+      - name: Configure CMake
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+          -DBUILD_SHARED_LIBS=OFF
+      - name: Build
+        run: cmake --build build --config Release -- -j
+
+      # 成果物をパッケージング
+      - name: Package artifacts
+        shell: bash
+        run: |
+          # 成果物用のディレクトリを作成
+          mkdir -p artifact
+          # ビルドされた実行ファイルをコピー
+          cp build/${{ matrix.output_name }} artifact/
+          # (オプション) READMEやライセンスファイルもコピー
+          cp README.md artifact/
+          cp LICENSE artifact/
+
+      # パッケージをアップロードして、次のジョブで使えるようにする
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: artifact
 
   create_release:
     # build_and_package ジョブがすべて成功したら実行
