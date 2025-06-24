@@ -40,7 +40,7 @@ jobs:
 
     # 環境変数の値を表示する
     - name: Verify VCPKG_INSTALLATION_ROOT
-      run: echo "VCPKG_INSTALLATION_ROOT is: ${env.VCPKG_INSTALLATION_ROOT}"
+      run: echo "VCPKG_INSTALLATION_ROOT is: ${{ env.VCPKG_INSTALLATION_ROOT }}"
     
     # ============================
     - name: Configure CMake
