@@ -79,7 +79,7 @@ jobs:
 
           echo "Copying from ${SOURCE_DIR}"
           # SOURCE_DIRの中身をすべてコピー 
-          cp -r ${SOURCE_DIR}/* artifact/
+          cp -r ${SOURCE_DIR} artifact/
 
           #  READMEやライセンスファイルもコピー
           cp README.md artifact/
