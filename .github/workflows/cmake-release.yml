@@ -31,6 +31,14 @@ jobs:
       #   run: sudo apt-get update && sudo apt-get install -y libglfw3-dev
 
       # === ライブラリインストール ===
+    # vcpkgが要求するシステムライブラリをインストール
+    - name: Install system dependencies for vcpkg (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        # vcpkgのglewが要求するライブラリをインストール
+        sudo apt-get install -y libxmu-dev libxi-dev libgl-dev
+
       # === vcpkgによる依存関係のインストールステップ===
       - name: Install dependencies with vcpkg
         id: runvcpkg # <-- IDを追加
@@ -46,7 +54,7 @@ jobs:
           "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
           -DBUILD_SHARED_LIBS=OFF
       - name: Build
-        run: cmake --build build --config Release -- -j
+        run: cmake --build build --config Release
 
       # 成果物をパッケージング
       - name: Package artifacts
