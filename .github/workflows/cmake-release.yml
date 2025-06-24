@@ -31,18 +31,20 @@ jobs:
     #   run: sudo apt-get update && sudo apt-get install -y libglfw3-dev
     
     # === ライブラリインストール ===   
-    - name: Install dependencies (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libgl1-mesa-dev
-        sudo apt-get install -y libglew-dev libglfw3-dev libglm-dev
-        sudo apt-get install -y g++ cmake
+    # === vcpkgによる依存関係のインストールステップ===
+    - name: Install dependencies with vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        # vcpkg.json に書かれた依存関係をインストール
+        vcpkgJsonGlob: '**/vcpkg.json'
 
     # ============================
     - name: Configure CMake
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
-
+      run: >
+        cmake -S . -B build
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_INSTALLATION_ROOT }}/scripts/buildsystems/vcpkg.cmake
+        -DBUILD_SHARED_LIBS=OFF
     - name: Build
       run: cmake --build build --config Release -- -j
 
