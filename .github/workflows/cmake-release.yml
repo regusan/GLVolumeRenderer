@@ -70,9 +70,18 @@ jobs:
         run: |
           # 成果物用のディレクトリを作成
           mkdir -p artifact
-          # ビルドされた実行ファイルをコピー
-          cp -r build/Release/* artifact/
-          # (オプション) READMEやライセンスファイルもコピー
+          # ビルドされた実行ファイルをコピー        
+          # コピー元のフォルダパスをOSによって決定
+          SOURCE_DIR="build/${{ matrix.output_name }}"
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            SOURCE_DIR="build/Release"
+          fi
+
+          echo "Copying from ${SOURCE_DIR}"
+          # SOURCE_DIRの中身をすべてコピー 
+          cp -r ${SOURCE_DIR}/* artifact/
+
+          #  READMEやライセンスファイルもコピー
           cp README.md artifact/
           cp LICENSE artifact/
 
