@@ -29,12 +29,16 @@ jobs:
     # - name: Install dependencies (Linux)
     #   if: runner.os == 'Linux'
     #   run: sudo apt-get update && sudo apt-get install -y libglfw3-dev
-      
+    
+    # === デバッグ用ステップ ===
+    - name: List files in workspace
+      run: ls -R
+    # ============================
     - name: Configure CMake
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
 
     - name: Build
-      run: cmake --build build --config Release -j
+      run: cmake --build build --config Release -- -j
 
     # 成果物をパッケージング
     - name: Package artifacts
