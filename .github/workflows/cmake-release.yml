@@ -63,7 +63,7 @@ jobs:
           # 成果物用のディレクトリを作成
           mkdir -p artifact
           # ビルドされた実行ファイルをコピー
-          cp build/${{ matrix.output_name }} artifact/
+          cp -r build/Release/* artifact/
           # (オプション) READMEやライセンスファイルもコピー
           cp README.md artifact/
           cp LICENSE artifact/

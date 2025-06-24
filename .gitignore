@@ -4,6 +4,7 @@ build/*
 volume/*
 imgui.ini
 docs/*
+vcpkg/*
 #WIndows
 vcpkg_installed/*
 out/*
