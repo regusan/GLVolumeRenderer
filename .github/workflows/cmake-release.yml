@@ -31,13 +31,21 @@ jobs:
       #   run: sudo apt-get update && sudo apt-get install -y libglfw3-dev
 
       # === ライブラリインストール ===
-    # vcpkgが要求するシステムライブラリをインストール
+      # vcpkgが要求するシステムライブラリをインストール
       - name: Install system dependencies for vcpkg (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           # vcpkgのglewが要求するライブラリをインストール
-          sudo apt-get install -y libxmu-dev libxi-dev libgl-dev
+          sudo apt-get install -y \
+          libgl-dev \
+          libxmu-dev \
+          libxi-dev \
+          libxinerama-dev \
+          libxcursor-dev \
+          xorg-dev \
+          libglu1-mesa-dev \
+          pkg-config
 
       # === vcpkgによる依存関係のインストールステップ===
       - name: Install dependencies with vcpkg
